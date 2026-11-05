@@ -11,7 +11,7 @@
 
 [AI 酱本体](https://github.com/lXiaoSel1/AI-Buddy) · [B站陪伴](https://github.com/lXiaoSel1/AI-Buddy-Bilibili) · [QQ连接](https://github.com/lXiaoSel1/AI-Buddy-QQ) · **一起玩牌**（本仓库）
 
-**当前版本：1.0.0** · 需要 [AI 酱](https://github.com/lXiaoSel1/AI-Buddy) 2.0.4 或更新版本，建议用 2.0.5：在 2.0.4 里，这个页面和 B站、QQ 页面切换时可能卡在「启动中」。这是 AI 酱的官方插件，在 AI 酱的 **扩展中心** 里安装，不用单独下载。
+**当前版本：1.0.0** · 需要 [AI 酱](https://github.com/lXiaoSel1/AI-Buddy) 2.0.4 或更新版本，建议用 2.0.5 或更新版本：在 2.0.4 里，这个页面和 B站、QQ 页面切换时可能卡在「启动中」。这是 AI 酱的官方插件，在 AI 酱的 **扩展中心** 里安装，不用单独下载。
 
 和 AI 酱里的角色打斗地主和德州扑克。她们坐在牌桌后面，用各自绑定的模型决定每一步，会换表情，也可能说一句。规则和结算由 AI 酱本体负责，模型只提出行动，不合法的行动不会执行。
 
@@ -24,7 +24,7 @@
 
 ## 快速上手
 
-1. 装好 AI 酱 2.0.5，并给要上桌的角色配好聊天模型。
+1. 装好 AI 酱 2.0.5 或更新版本，并给要上桌的角色配好聊天模型。
 2. 左侧栏打开 **扩展中心 → 发现**，在「一起玩牌」右边点 **安装…**，确认四项权限后启用。
 3. 打开侧栏 **插件** 里的「一起玩牌」，大厅里选斗地主或德州。
 4. 选牌友，点 **开始发牌**。斗地主每人至少要有 32 可用积分。
@@ -103,7 +103,7 @@
 
 ## English
 
-**Version 1.0.0** · requires [AI Buddy](https://github.com/lXiaoSel1/AI-Buddy) 2.0.4 or later. Use 2.0.5 if you can: in 2.0.4 this page can stick on "Starting" when you switch from the Bilibili or QQ page. It is an official AI Buddy plugin, installed from the **Extensions** center, so there is nothing to download separately.
+**Version 1.0.0** · requires [AI Buddy](https://github.com/lXiaoSel1/AI-Buddy) 2.0.4 or later. Use 2.0.5 or later if you can: in 2.0.4 this page can stick on "Starting" when you switch from the Bilibili or QQ page. It is an official AI Buddy plugin, installed from the **Extensions** center, so there is nothing to download separately.
 
 Play Dou Dizhu and Texas Hold'em with your AI Buddy characters. They sit behind the table, use their own bound models to decide each move, change expressions and sometimes say a line. The app handles rules and settlement. A model can only propose a move, and an illegal move is never played.
 
@@ -114,7 +114,7 @@ Play Dou Dizhu and Texas Hold'em with your AI Buddy characters. They sit behind 
 
 ### Quick start
 
-1. Install AI Buddy 2.0.5 and give the characters you want at the table a chat model.
+1. Install AI Buddy 2.0.5 or later and give the characters you want at the table a chat model.
 2. Open **Extensions → Discover**, click **Install…** next to Card Games, confirm the four permissions and enable it.
 3. Open Card Games under **Plugins** in the sidebar and pick a game in the lobby.
 4. Pick your opponents and click **Deal**. Dou Dizhu needs at least 32 available points per player.
