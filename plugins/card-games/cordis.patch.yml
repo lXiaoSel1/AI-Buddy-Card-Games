@@ -1,0 +1,3 @@
+- insert:
+    - id: ai-buddy-card-games
+      name: '@ai-buddy/card-games'

@@ -1,0 +1,8 @@
+{
+  "doudizhu": {"totalPlayers": 3, "minimumAvailableEach": 32, "basePoint": 1, "pairCap": 16, "landlordCap": 32, "ordinaryDoubleOnly": true},
+  "texas": {"totalPlayers": 5, "minimumPlayers": 2, "maximumPlayers": 10, "blinds": [1, 2], "allowedBlinds": [[1, 2], [2, 5]], "minimumNewBuyIn": 20, "aiTargetBuyIn": 200, "userBuyIn": "explicit_20_or_more_within_available", "practiceTable": false},
+  "models": {"binding": "character_host_binding", "bindingChanges": "next_game_or_hand", "automaticCorrections": 2, "fallbackBot": false, "thinkingTimeout": null, "tokenBudget": null, "strategyAssistance": false, "autoContinueAfterReload": false},
+  "participation": {"completedPerPoint": 3, "carryAcrossExit": true, "carryAcrossDates": true, "separatePerGame": true},
+  "updates": "manual",
+  "voiceDependency": false
+}

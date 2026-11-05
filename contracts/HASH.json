@@ -1,0 +1,6 @@
+{
+  "version": "voice-games-v1",
+  "algorithm": "SHA256",
+  "canonicalization": "exact-file-bytes",
+  "sha256": "89b11bccfe91dfdb12fc43a915b4310d195f1c249564187e12cc5401953587de"
+}

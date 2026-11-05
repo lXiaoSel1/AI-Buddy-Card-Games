@@ -1,0 +1,92 @@
+{
+  "contractVersion": "voice-games-v1",
+  "candidateVersion": "0.1.0-dev.1",
+  "status": "IMPLEMENTATION_CONTRACT_NOT_PRODUCTION_INTEGRATED",
+  "facade": "ctx.buddyVoiceGamesServices.openPlugin",
+  "packages": [
+    "@ai-buddy/voice",
+    "@ai-buddy/card-games"
+  ],
+  "capabilities": [
+    "voice.capture.request",
+    "voice.audio.read",
+    "voice.draft.write",
+    "games.table",
+    "games.models",
+    "games.chat",
+    "games.replay"
+  ],
+  "methods": {
+    "voice.target.read": "voice.capture.request",
+    "voice.capture.request": "voice.capture.request",
+    "voice.audio.read": "voice.audio.read",
+    "voice.audio.release": "voice.audio.read",
+    "voice.draft.offer": "voice.draft.write",
+    "voice.draft.apply": "voice.draft.write",
+    "voice.submission.read": "voice.draft.write",
+    "games.table.create": "games.table",
+    "games.table.read": "games.table",
+    "games.table.art": "games.table",
+    "games.table.action": "games.table",
+    "games.table.pause": "games.table",
+    "games.table.resume": "games.table",
+    "games.table.leave": "games.table",
+    "games.table.next": "games.table",
+    "games.table.seats": "games.table",
+    "games.table.topup": "games.table",
+    "games.model.request": "games.models",
+    "games.model.cancel": "games.models",
+    "games.chat.send": "games.chat",
+    "games.chat.read": "games.chat",
+    "games.replay.read": "games.replay",
+    "games.replay.review": "games.replay"
+  },
+  "scope": [
+    "characterId",
+    "personaId",
+    "lifeId",
+    "operationId",
+    "sessionId",
+    "generation"
+  ],
+  "nativeIdentity": "host verified installed package identity; plugin payload cannot grant identity or authority",
+  "hostOnly": [
+    "capture.start",
+    "capture.stop",
+    "capture.cancel",
+    "voice.draft.submit",
+    "game.models.capture",
+    "economy.settle",
+    "welfare.ensure",
+    "life.prepare",
+    "life.commit",
+    "outbox.ack"
+  ],
+  "openResult": [
+    "describe",
+    "invoke",
+    "authorizeRequest",
+    "registerTranscriber",
+    "close"
+  ],
+  "invariants": [
+    "shared DSH origin never grants microphone permission or final user submission",
+    "recording and submission require current host UI user action",
+    "all voice resources scoped, bounded, revocable and temporary",
+    "audio is never uploaded to cloud without explicit provider selection",
+    "private/group input append and submission mapping commit together",
+    "one authoritative economy writer and no second user wallet",
+    "action command binds tableId, expectedVersion and immutable commandId",
+    "host verifies action and calculates settlement; frontend cannot send arbitrary deltas",
+    "models use frozen selection and current authorization without work tools",
+    "old, duplicate or revoked responses do not advance a table",
+    "active cards are private; settled Texas replay permits all dealt hole cards",
+    "schema and minimumWriter prevent old writers ignoring funds",
+    "real, fixture, provider and target-platform verification remain separate"
+  ],
+  "backendTransport": [
+    "ui.authorize",
+    "voice.jobs.poll",
+    "voice.jobs.complete"
+  ]
+}

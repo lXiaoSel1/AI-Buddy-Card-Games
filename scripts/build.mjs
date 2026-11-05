@@ -1,0 +1,35 @@
+import {build} from 'esbuild';
+import {mkdir,readFile,writeFile,copyFile,readdir,cp} from 'node:fs/promises';
+import {join,dirname} from 'node:path';
+import {gzipSync} from 'node:zlib';
+import {root,sha,snapshot,inventory} from './lib/evidence.mjs';
+import {unpack} from './lib/tar-reader.mjs';
+import {CONTRACT_VERSION,CONTRACT_HASH} from '../contracts/contract.mjs';
+const before=await snapshot(),stamp=new Date().toISOString().replace(/[:.]/g,'-'),base=join(root,'artifacts',stamp),src=join(root,'plugins/card-games'),stage=join(base,'card-games','package');
+await mkdir(join(stage,'lib'),{recursive:true});const manifest=JSON.parse(await readFile(join(src,'package.json'),'utf8'));
+if(manifest.name!=='@ai-buddy/card-games'||manifest.version!=='1.0.0')throw Error('Unexpected release package identity');
+await build({absWorkingDir:root,entryPoints:[join(src,'src/index.mjs')],outfile:join(stage,'lib/index.js'),bundle:true,format:'esm',platform:'node',target:'node24',external:['node:*'],legalComments:'eof',sourcemap:false});
+await build({absWorkingDir:root,entryPoints:[join(src,'src/client/index.mjs')],outfile:join(stage,'lib/client.js'),bundle:true,format:'iife',platform:'browser',target:'chrome130',legalComments:'eof',sourcemap:false});
+await build({absWorkingDir:root,entryPoints:[join(src,'src/rules/index.mjs')],outfile:join(stage,'lib/rules.js'),bundle:true,format:'esm',platform:'node',target:'node24',external:['node:*'],legalComments:'eof',sourcemap:false});
+const ruleSha=sha(await readFile(join(stage,'lib/rules.js')));
+if(ruleSha!=='d03d283bdf6c748fcfbdcbcf4eca7f959ca29cbe4ebfbf87f3b53a51d94f16e4')throw Error('Approved rule module bytes changed: '+ruleSha);
+const assetDir=join(stage,'lib/assets');
+await cp(join(src,'src/client/assets'),assetDir,{recursive:true,errorOnExist:true,force:false});
+const assetNames=(await inventory(assetDir)).map(row=>row.path).filter(path=>/\.(?:webp|png|woff2)$/.test(path));
+await writeFile(join(stage,'lib/assets.json'),JSON.stringify(assetNames)+'\n');
+for(const file of await readdir(src,{withFileTypes:true})){if(file.isFile()&&(file.name.endsWith('.md')||file.name.endsWith('.json')||file.name==='cordis.patch.yml')&&!['package-lock.json','package.json'].includes(file.name))await copyFile(join(src,file.name),join(stage,file.name));}
+await copyFile(join(root,'contracts/voice-games-v1.json'),join(stage,'HOST-CONTRACT.json'));
+await copyFile(join(root,'HOST-CONTRACT.md'),join(stage,'HOST-CONTRACT.md'));
+const packedManifest={...manifest,dependencies:{},scripts:{},files:['lib','*.md','*.json','cordis.patch.yml'],aiBuddy:{...manifest.aiBuddy,requiredHostFeatures:[CONTRACT_VERSION],voiceReady:false,contractHash:CONTRACT_HASH,ruleEntry:'lib/rules.js',nativeRuntime:'DSH 0.2.1-rc.3'}};delete packedManifest.devDependencies;
+packedManifest.exports={...packedManifest.exports,'./rules':'./lib/rules.js'};
+await writeFile(join(stage,'package.json'),JSON.stringify(packedManifest,null,2)+'\n');
+await writeFile(join(stage,'SOURCE-INPUTS.json'),JSON.stringify({sourceSnapshotSha256:before.sha256,contractHash:CONTRACT_HASH,kind:'official-card-games-release'},null,2)+'\n');
+const rows=await inventory(stage);await writeFile(join(stage,'BUILD-INVENTORY.json'),JSON.stringify({schemaVersion:1,files:rows},null,2)+'\n');
+function header(path,size){let name=path,prefix='';if(Buffer.byteLength(name)>100){let found=false;for(let at=name.lastIndexOf('/');at>0;at=name.lastIndexOf('/',at-1)){if(Buffer.byteLength(name.slice(0,at))<=155&&Buffer.byteLength(name.slice(at+1))<=100){prefix=name.slice(0,at);name=name.slice(at+1);found=true;break;}}if(!found)throw Error('Tar path exceeds USTAR limits');}const b=Buffer.alloc(512),str=(v,o,n)=>b.write(v,o,n,'utf8'),oct=(v,o,n)=>str(v.toString(8).padStart(n-1,'0')+'\0',o,n);str(name,0,100);oct(0o644,100,8);oct(0,108,8);oct(0,116,8);oct(size,124,12);oct(0,136,12);b.fill(32,148,156);str('0',156,1);str('ustar\0',257,6);str('00',263,2);str(prefix,345,155);str(b.reduce((s,x)=>s+x,0).toString(8).padStart(6,'0')+'\0 ',148,8);return b;}
+const contents=await inventory(stage),parts=[];for(const row of contents){const data=await readFile(join(stage,row.path));parts.push(header('package/'+row.path,data.length),data,Buffer.alloc((512-data.length%512)%512));}parts.push(Buffer.alloc(1024));
+const tgz=gzipSync(Buffer.concat(parts),{level:9,mtime:0}),members=unpack(tgz);if(members.size!==contents.length)throw Error('Packed inventory differs');
+for(const row of contents)if(sha(members.get(row.path))!==row.sha256)throw Error('Packed bytes differ: '+row.path);
+const after=await snapshot();if(before.sha256!==after.sha256)throw Error('SOURCE_CHANGED_DURING_BUILD; incomplete stage retained');
+const path=join(dirname(stage),'ai-buddy-card-games-'+manifest.version+'.tgz');await writeFile(path,tgz,{flag:'wx'});
+const receipt={schemaVersion:1,at:new Date().toISOString(),kind:'official-card-games-release-build',sourceSnapshotSha256:after.sha256,contractHash:CONTRACT_HASH,packages:[{packageName:manifest.name,version:manifest.version,path,stage,bytes:tgz.length,sha256:sha(tgz),ruleModuleSha256:sha(members.get('lib/rules.js')),members:contents.length}]};
+await writeFile(join(base,'BUILD.json'),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify(receipt,null,2));

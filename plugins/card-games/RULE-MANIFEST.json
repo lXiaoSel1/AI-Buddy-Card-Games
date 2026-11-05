@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "doudizhu": "ddz-r87-classic-v1",
+  "texas": "nlhe-points-dead-button-v1",
+  "sourceEntry": "src/rules/index.mjs",
+  "exports": ["RULE_MANIFEST", "STANDARD_DECK", "createGame", "reduceGame", "legalActions", "projectGame", "replayGame", "ddzPatterns", "ddzAllPlays", "bestHand", "calculateTexasSettlement", "blindPlan"],
+  "randomness": "complete deck provided by host cryptographic Fisher-Yates; no test fallback",
+  "settlement": "pure derived gross transfers; host validates and commits its own single economy transaction",
+  "potClaims": "ordered conditional claims preserve a previously uncontested side-pot interval before an immediate exit; later genuine eligible contributors take precedence",
+  "authorityRegistration": "host pins source/built entry and complete imported rule tree hashes"
+}

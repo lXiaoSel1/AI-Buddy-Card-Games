@@ -1,0 +1,65 @@
+{
+  "name": "@ai-buddy/card-games",
+  "version": "1.0.0",
+  "description": "AI Buddy native Dou Dizhu and no-limit Texas points tables",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./rules": "./lib/rules.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "cordis.patch.yml",
+    "README.md",
+    "RULES.md",
+    "RULE-MANIFEST.json",
+    "DATA-SCHEMA.json",
+    "DEFAULTS.json",
+    "LICENSE.md",
+    "THIRD-PARTY-NOTICES.md"
+  ],
+  "license": "SEE LICENSE IN LICENSE.md",
+  "engines": {
+    "node": ">=24.21.0",
+    "dsh": "0.2.1-rc.3"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-layout",
+        "@deepseek-ai/dsh-client-ui-sidebar"
+      ],
+      "platform": "web"
+    }
+  },
+  "aiBuddy": {
+    "bridgeVersion": "1.3.0",
+    "voiceGamesContractVersion": "voice-games-v1",
+    "contractHash": "89b11bccfe91dfdb12fc43a915b4310d195f1c249564187e12cc5401953587de",
+    "requiredHostFeatures": [
+      "voice-games-v1"
+    ],
+    "capabilities": [
+      "games.table",
+      "games.models",
+      "games.chat",
+      "games.replay"
+    ],
+    "features": [
+      "ddz-r87-classic-v1",
+      "nlhe-points-dead-button-v1"
+    ],
+    "dataSchemaVersion": 1,
+    "minimumWriter": "0.1.0-dev.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lXiaoSel1/AI-Buddy-Card-Games.git"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "minimumWriter": "0.1.0-dev.1",
+  "authority": "host-economy-single-writer",
+  "pluginWallet": false,
+  "checkpoint": ["id", "handId", "version", "ruleVersion", "players", "deck", "hands", "phase", "actorId", "actionIds", "settlement"],
+  "texasAdditional": ["board", "burn", "drawIndex", "currentBet", "minRaise", "actedAt", "blindPlan", "potClaims", "returns"],
+  "hiddenState": "host-private, never returned by normal page/chat/model projections",
+  "restart": "pause, recover same checkpoint and holds; never automatically issue paid model request",
+  "rollback": "host minimumWriter gates newer funds schema; never discard reservations or overwrite later wallet data",
+  "uninstall": "retain authoritative host tables, funds, history and pending receipts"
+}
