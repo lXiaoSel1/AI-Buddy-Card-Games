@@ -6,6 +6,8 @@ import {ddzCanBeat,ddzPatterns} from '../rules/doudizhu.mjs';
 import {chatReceipt as normalizeChatReceipt,retryChatPayload} from './chat-receipt.mjs';
 import {actionCommand} from './action-command.mjs';
 import {createDdzLifecycle} from './ddz-lifecycle.mjs';
+import {createCardSound} from './sound.mjs';
+import {useCardAudio} from './use-card-audio.mjs';
 import {acceptsTableObservation,commandCanRetry,commandOutcome,commandReadPayload,startSingleFlightPoll,viewScopeIsCurrent} from './operation-state.mjs';
 
 const waitStage=turn=>turn&&({...turn,phase:turn.stage==='generating'?'thinking':turn.stage});
@@ -19,12 +21,15 @@ export async function refreshAfterModelStop(client,{tableId,isCurrent,apply}){
 
 export function createCardGamesApp(React,{client=createGamePageClient(),render=renderCardGames}={}){
  const {useState,useEffect,useRef}=React;
+ const sound=createCardSound();
+ sound.setVisible(false);
  return function CardGamesApp(){
   const [ready,setReady]=useState(null),[lobby,setLobby]=useState({tables:[],charactersAvailable:[]}),[table,setTable]=useState(null),[type,setType]=useState('texas'),[count,setCount]=useState(5),[roster,setRoster]=useState([]),[buyIn,setBuyIn]=useState('200'),[blinds,setBlinds]=useState('1/2');
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[errorCode,setErrorCode]=useState(null),[selected,setSelected]=useState([]),[pattern,setPattern]=useState(''),[raiseTo,setRaiseTo]=useState(''),[messages,setMessages]=useState([]),[text,setText]=useState('');
   const [replay,setReplay]=useState(null),[review,setReview]=useState(null),[reviewCharacter,setReviewCharacter]=useState(''),[reviewBusy,setReviewBusy]=useState(false),[strategy,setStrategy]=useState(false),[autoAI,setAutoAI]=useState(false),[pendingRetry,setPendingRetry]=useState(null),[modelStatus,setModelStatus]=useState(null),[dismissedModel,setDismissedModel]=useState(null),[modelWaitLong,setModelWaitLong]=useState(false),[localTurn,setLocalTurn]=useState(null);
   const [chatBusy,setChatBusy]=useState(false),[chatCharacter,setChatCharacter]=useState(''),[chatReceipt,setChatReceipt]=useState(null),[chatRetry,setChatRetry]=useState(null),[chatSpeech,setChatSpeech]=useState(null);
   const [screen,setScreen]=useState('lobby'),[overlay,setOverlayState]=useState(null),[topup,setTopup]=useState('20');
+  const audio=useCardAudio(React,client,sound,ready);
   const [ddzPresentation,setDdzPresentation]=useState(null),ddzLifecycle=useRef(null);
   ddzLifecycle.current??=createDdzLifecycle({onChange:setDdzPresentation});
   const stageRef=useRef(null),live=useRef(true),epoch=useRef(0),sequence=useRef(0),observation=useRef(null),lastAuto=useRef(''),selectedTable=useRef(null),tableRef=useRef(null);
@@ -51,6 +56,7 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
    if(reviewRequest.current)void cancelReview({detach:true});
    epoch.current++;selectedTable.current=tableId;tableRef.current=null;observation.current=null;lastAuto.current='';
    ddzLifecycle.current.reset();
+   audio.reset();
    commandRequest.current=null;chatRequest.current=null;chatObservation.current=null;reviewRequest.current=null;replayRead.current=null;
    setTable(null);setBusy(false);setChatBusy(false);setReviewBusy(false);setAutoAI(false);clearError();setPendingRetry(null);setModelStatus(null);setDismissedModel(null);setModelWaitLong(false);setLocalTurn(localTurns.current.get(tableId)?.turn??null);
    setReplay(null);setReview(null);setSelected([]);setMessages([]);setText('');setChatCharacter('');setChatReceipt(null);setChatRetry(null);setChatSpeech(null);setOverlayState(null);
@@ -70,6 +76,7 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
     }
    }
    ddzLifecycle.current.observe(tableRef.current,candidate,{localDeal,reduced:localDeal&&globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches===true});
+   audio.observe(tableRef.current,candidate,localDeal);
    tableRef.current=candidate;setTable(candidate);
    setLobby(old=>{
     const rows=old.tables??[],previous=rows.find(item=>item.tableId===candidate.tableId);
@@ -161,7 +168,10 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
   const ddzEndStage=ddzDealing?null:ddzPresentation?.stage??null;
   const continueDdzSettlement=()=>ddzLifecycle.current.continueSettlement(ddzPresentation);
   const visuals=useCardPresentation(React,client,{ready,lobby,table,view,players,screen,overlay,modelRequest,chatSpeech,stageRef,viewEpoch:epoch.current,
-   ddzFxToken:ddzEndStage==='holding'?ddzPresentation:null,onDdzFxDone:ddzLifecycle.current.finishFx});
+   ddzFxToken:ddzEndStage==='holding'?ddzPresentation:null,onDdzFxDone:ddzLifecycle.current.finishFx,onEffect:audio.onEffect,onBoardReveal:audio.onBoardReveal});
+  const audioRunout=visuals.boardBusy||visuals.allInPresenting;
+  const audioPresentationBusy=audioRunout||ddzDealing||ddzEndStage==='holding';
+  useEffect(()=>{audio.updateScene(screen,table,audioRunout,audioPresentationBusy);},[audio.loaded,screen,table,audioRunout,audioPresentationBusy]);
   const boardBusy=visuals.boardBusy||!!ddzPresentation;
   function tableCommand(method,extra={}){
    const latest=tableRef.current;if(!latest||boardBusy||ddzLifecycle.current.busy||method!=='games.table.pause'&&(pendingRetry||latest.modelTurn||localTurns.current.has(latest.tableId)))return;
@@ -350,6 +360,6 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
    try{const state=await client.readiness();if(!current(captured))return;setReady(state);clearError();if(state.mode==='runtime')await refresh(null);}
    catch(error){if(current(captured))showError(error);}
   }
-  return render(React,{...visuals,boardBusy,ddzDealing,ddzDealCount,ddzDealReduced:ddzDealing&&ddzPresentation.reduced,ddzEndStage,continueDdzSettlement,stageRef,screen,overlay,setOverlay,openSetup,openSaved,openSeats,showLobby,returnLobby:showLobby,topup,setTopup,toggleCard,refreshReadiness,clearModelStatus:()=>setDismissedModel(modelNoticeKey),ready,lobby,table,type,count,roster,buyIn,blinds,busy,chatBusy,chatCharacter,chatReceipt,chatRetry,error,errorCode,selected,pattern,raiseTo,messages,text,replay,review,reviewCharacter,reviewBusy,strategy,autoAI,pendingRetry,modelStatus:modelNoticeKey===dismissedModel?null:observedModel,modelTurn,modelBusy,modelWaitLong,view,players,userId,ownHand,legal,isUser,settled,paused,available,rosterCount,chosenPattern,selectedPatterns,stylesheet,modelRequest,refresh,perform,tableCommand,startModel,changeCount,create,action,retry,checkPending,cancelModel,openReplay,startReview,cancelReview,submitChat,retryChat,refreshChat,cancelChat,setType,setRoster,setBuyIn,setBlinds,setRaiseTo,setText,setReplay,setReview,setReviewCharacter,setChatCharacter,setStrategy,setAutoAI,setPattern,setError:visibleError,epoch,lastAuto,uuid});
+  return render(React,{...visuals,audioSettings:audio.settings,setAudioSettings:audio.setAudioSettings,onAudioClick:audio.onAudioClick,boardBusy,ddzDealing,ddzDealCount,ddzDealReduced:ddzDealing&&ddzPresentation.reduced,ddzEndStage,continueDdzSettlement,stageRef,screen,overlay,setOverlay,openSetup,openSaved,openSeats,showLobby,returnLobby:showLobby,topup,setTopup,toggleCard,refreshReadiness,clearModelStatus:()=>setDismissedModel(modelNoticeKey),ready,lobby,table,type,count,roster,buyIn,blinds,busy,chatBusy,chatCharacter,chatReceipt,chatRetry,error,errorCode,selected,pattern,raiseTo,messages,text,replay,review,reviewCharacter,reviewBusy,strategy,autoAI,pendingRetry,modelStatus:modelNoticeKey===dismissedModel?null:observedModel,modelTurn,modelBusy,modelWaitLong,view,players,userId,ownHand,legal,isUser,settled,paused,available,rosterCount,chosenPattern,selectedPatterns,stylesheet,modelRequest,refresh,perform,tableCommand,startModel,changeCount,create,action,retry,checkPending,cancelModel,openReplay,startReview,cancelReview,submitChat,retryChat,refreshChat,cancelChat,setType,setRoster,setBuyIn,setBlinds,setRaiseTo,setText,setReplay,setReview,setReviewCharacter,setChatCharacter,setStrategy,setAutoAI,setPattern,setError:visibleError,epoch,lastAuto,uuid});
  };
 }

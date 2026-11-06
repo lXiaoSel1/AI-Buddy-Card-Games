@@ -104,7 +104,7 @@ test('real app reconciles a lost leave response with the original identity and r
   await view.checkPending();await nextTick();
   view=ui.render();assert.equal(view.screen,'lobby');assert.equal(view.pendingRetry,null);assert.equal(view.error,'');assert.deepEqual(view.lobby.tables,[]);
   const sent=calls.find(row=>row.method==='games.table.leave');
-  assert.deepEqual(calls.find(row=>row.payload.command).payload.command,sent);
+  assert.deepEqual(calls.find(row=>row.method==='games.table.read'&&row.payload.command).payload.command,sent);
   assert.equal(calls.filter(row=>row.method==='games.table.leave').length,1);
 });
 

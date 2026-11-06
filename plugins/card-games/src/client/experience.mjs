@@ -4,7 +4,7 @@ import {useBoardReveal} from './board-reveal.mjs';
 const EFFECT_MS=1010;
 const emptyArt=Object.freeze({});
 const appearance=()=>({theme:safeTheme(globalThis.document?.documentElement?.dataset.buddyTheme),lang:globalThis.document?.documentElement?.dataset.buddyLang==='en'?'en':'zh'});
-export function useCardPresentation(React,client,{ready,lobby,table,view,players,screen,overlay,modelRequest,chatSpeech,stageRef,viewEpoch,ddzFxToken,onDdzFxDone}){
+export function useCardPresentation(React,client,{ready,lobby,table,view,players,screen,overlay,modelRequest,chatSpeech,stageRef,viewEpoch,ddzFxToken,onDdzFxDone,onEffect,onBoardReveal}){
  const {useEffect,useState,useRef}=React;
  const [{theme,lang},setAppearance]=useState(appearance),[size,setSize]=useState(null),[art,setArt]=useState(emptyArt),[effect,setEffect]=useState(null),[speech,setSpeech]=useState(null),[showdownPending,setShowdownPending]=useState(null);
  const running=useRef(new Set()),cache=useRef(new Map()),mounted=useRef(false),visualScope=useRef(null);
@@ -31,6 +31,12 @@ export function useCardPresentation(React,client,{ready,lobby,table,view,players
  const reveal=useBoardReveal(React,boardKey,view?.board?.length??0,{
   allInDelay,reduced:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches??false,settled:view?.settlement?.completed===true
  });
+ const previousBoard=useRef(null);
+ useEffect(()=>{
+  const before=previousBoard.current;
+  previousBoard.current={key:boardKey,count:reveal.count};
+  if(boardKey&&before?.key===boardKey&&reveal.count>before.count&&Object.keys(reveal.animations).length)onBoardReveal?.(view.handId,reveal.count,reveal.count-before.count);
+ },[boardKey,reveal.count]);
  cardsBusy.current=reveal.busy;
  const boardBusy=reveal.busy||!!boardKey&&showdownPending===boardKey;
  useEffect(()=>{
@@ -54,6 +60,7 @@ export function useCardPresentation(React,client,{ready,lobby,table,view,players
    if(next.showdown&&cardsBusy.current)return;
    queue.current.shift();
    playing.current=next;playingUntil.current=Date.now()+EFFECT_MS;setEffect(next.event);
+   onEffect?.(next.event);
    timer.current=setTimeout(()=>{playing.current=null;setEffect(null);play();},EFFECT_MS);
   };
   for(const event of events){
@@ -131,6 +138,6 @@ export function useCardPresentation(React,client,{ready,lobby,table,view,players
    }
   })();
  },[client,ready?.mode,keys]);
- return {theme,lang,art,size,effect,speech,boardBusy,boardCount:reveal.count,boardPhaseCount:reveal.phaseCount,boardAnimations:reveal.animations,visibleEmotions};
+ return {theme,lang,art,size,effect,speech,boardBusy,allInPresenting:pendingAllIn||effect?.kind==='allin',boardCount:reveal.count,boardPhaseCount:reveal.phaseCount,boardAnimations:reveal.animations,visibleEmotions};
 }
 

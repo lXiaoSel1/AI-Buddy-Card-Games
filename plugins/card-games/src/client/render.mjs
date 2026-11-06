@@ -1,4 +1,5 @@
 import {chatStatusText} from './chat-receipt.mjs';
+import {AudioSettingsControl} from './audio-settings.mjs';
 import {DDZ_DEAL_TIMING} from './ddz-lifecycle.mjs';
 import {bestHand} from '../rules/texas.mjs';
 import {artUrl,bubblePlacement,ddzDisplayHand,FX,effectParticles,packagedAsset,playingCard,portraitUrl,safeTheme,seatPositions,stageFit,THEMES,tokenArt} from './visual.mjs';
@@ -75,6 +76,7 @@ export function renderCardGames(React,p){
  const button=(text,onClick,disabled=p.busy,extra={})=>h('button',{type:'button',onClick,disabled,...extra},text);
  const gb=(text,onClick,disabled=p.busy,variant='',extra={})=>button(text,onClick,disabled,{className:'cg-gb '+variant,...extra});
  const ib=(text,onClick,disabled=p.busy,extra={})=>button(text,onClick,disabled,{className:'cg-ib',...extra});
+ const sound=(result=false)=>p.audioSettings&&h(AudioSettingsControl,{React,lang:p.lang,settings:p.audioSettings,change:p.setAudioSettings,result});
  const row=(...children)=>h('div',{className:'cg-row'},...children);
  const quiet=text=>h('p',{className:'cg-quiet'},text);
  const field=(text,control)=>h('label',{className:'cg-field'},text,control);
@@ -164,7 +166,7 @@ export function renderCardGames(React,p){
   return h('div',{className:'cg-lobby'},
    h('div',{className:'cg-lobby-host'},pic(viewer,'cheerful',{full:true,alt:label(viewer),className:'cg-breathe'})),
    h('div',{className:'cg-bubble cg-lobby-greeting'},t('今天想玩什么？我陪你。','What shall we play? I’m in.')),
-   h('header',{className:'cg-lobby-top'},h('img',{className:'cg-brand',src:packagedAsset('misc/icon.png'),alt:''}),h('h1',null,t('一起玩牌','Card table')),h('span',{className:'cg-grow'}),ib(h(React.Fragment,null,coin(points(p.lobby.wallet?.balance)),t('可用 '+points(p.lobby.wallet?.available),points(p.lobby.wallet?.available)+' free')),()=>show('wallet'),false,{'aria-label':t('钱包与在桌资金','Wallet & table funds')}),ib(t('刷新状态','Refresh'),refresh,p.busy)),
+   h('header',{className:'cg-lobby-top'},h('img',{className:'cg-brand',src:packagedAsset('misc/icon.png'),alt:''}),h('h1',null,t('一起玩牌','Card table')),h('span',{className:'cg-grow'}),sound(),ib(h(React.Fragment,null,coin(points(p.lobby.wallet?.balance)),t('可用 '+points(p.lobby.wallet?.available),points(p.lobby.wallet?.available)+' free')),()=>show('wallet'),false,{'aria-label':t('钱包与在桌资金','Wallet & table funds')}),ib(t('刷新状态','Refresh'),refresh,p.busy)),
    h('div',{className:'cg-lobby-doors'},
     saved.length>0&&h('div',{className:'cg-resume-list'},...saved.map(entry=>{
      const roster=entry.characterIds??[],round=entry.hand>0?t(' · 第 '+entry.hand+(entry.type==='texas'?' 手':' 局'),' · '+(entry.type==='texas'?'hand ':'game ')+entry.hand):'';
@@ -361,6 +363,7 @@ function hand(){
    ...foreground,
    h('header',{className:'cg-top'},
      ib(toolLabel('back',t('大厅','Lobby')),p.showLobby??(()=>{}),false,{'data-game-control':'lobby'}),h('span',{className:'cg-ib'},gameName(v.type)+(ddz?'':' · '+(v.blinds?.small??'–')+' / '+(v.blinds?.big??'–'))),h('span',{className:'cg-ib cg-phase'},t(...(PHASES[displayPhase]??[displayPhase,displayPhase]))),h('span',{className:'cg-grow'}),
+     sound(),
      ib(toolLabel('auto',t('AI 自动行动','AI auto')),()=>{p.lastAuto.current='';p.setAutoAI(!p.autoAI);},p.settled||closed||p.paused,{className:'cg-ib '+(p.autoAI?'on':''),'aria-pressed':p.autoAI,'data-game-control':'auto'}),
      ib(toolLabel('chat',t('桌聊','Chat')),()=>show('chat'),false,{'data-game-control':'chat'}),ib(coin(account?.available??p.lobby.wallet?.available),()=>show('wallet'),false,{'aria-label':t('钱包与在桌资金','Wallet & table funds')}),
      ib(p.paused?t('恢复牌局','Resume'):toolLabel('pause',t('暂停','Pause')),async()=>{if(p.paused||await p.tableCommand('games.table.pause'))show('pause');},p.boardBusy||p.settled||closed||p.busy&&!modelBusy,{'data-game-control':'pause'}),
@@ -422,6 +425,7 @@ function hand(){
   return h('section',{className:'cg-result cg-ddz-result','data-game-result':true},
    hero&&h('div',{className:'cg-result-hero'},pic(hero.characterId,userWon?'exasperated':'starry')),
    ib(toolLabel('back',t('大厅','Lobby')),p.showLobby??(()=>{}),false,{className:'cg-ib cg-result-lobby','data-game-control':'lobby'}),
+   sound(true),
    h('div',{className:'cg-result-panel'},h('h2',null,title),
     (factors.length>0||capped)&&h('div',{className:'cg-result-factors'},...factors.map((factor,i)=>h('span',{key:i},factor)),capped&&h('span',{className:'cap'},t('封顶 16','Capped at 16'))),
     ...p.players.filter(player=>Object.hasOwn(deltas,player.id)).map(({id,characterId})=>{
@@ -596,7 +600,7 @@ function topup(){
    gb(t('暂停','Pause'),async()=>{if(await p.tableCommand('games.table.pause'))show('pause');},p.busy||presentationBusy||closed,'quiet'))),
   compactClose(()=>{p.setError('');p.clearModelStatus?.();},t('关闭提示','Dismiss')));
 
- return h('main',{ref:p.stageRef,className:'cg-root','data-card-games':true,'data-game-screen':inTable?'table':'lobby','data-table-type':inTable?v.type:undefined,'data-game-phase':inTable?displayPhase:undefined,style:rootStyle},
+ return h('main',{ref:p.stageRef,className:'cg-root','data-card-games':true,'data-game-screen':inTable?'table':'lobby','data-table-type':inTable?v.type:undefined,'data-game-phase':inTable?displayPhase:undefined,style:rootStyle,onClickCapture:p.onAudioClick},
   h('style',null,p.stylesheet),h('div',{className:'cg-stage',style:stageStyle},
    h('div',{className:'cg-stage-background'+(p.ready&&p.ready.mode!=='runtime'?' cg-host-upgrade':(screen==='lobby'||ddz&&presentationSettled)?' cg-approved-brightness':''),style:rootStyle}),
    h('div',{className:'cg-content',ref:element=>{if(element)element.inert=isDialog;}},content),
