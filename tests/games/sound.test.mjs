@@ -10,7 +10,7 @@ function table(version=1,{id='table',hand='hand',type='texas',actor='ai',players
  return {tableId:id,version,status,userSeatId:'user',projection:{type,handId:hand,actorId:actor,players,settlement,history,bottom,dealAttempt}};
 }
 
-test('live play gives one cue for a turn, a user wager, and the outcome',()=>{
+test('live play gives one cue for a turn and a user wager',()=>{
  const before=table(),after=table(2,{actor:'user',history:[{actorId:'ai',type:'call',amount:20}]});
  assert.deepEqual(tableSounds(before,after),['turn']);
  assert.deepEqual(tableSounds(after,after),[]);
@@ -19,10 +19,6 @@ test('live play gives one cue for a turn, a user wager, and the outcome',()=>{
  assert.deepEqual(tableSounds(after,nextStreet),['turn']);
  const wager=table(3,{history:[...after.projection.history,{actorId:'user',type:'call',amount:20}]});
  assert.deepEqual(tableSounds(after,wager),['chip']);
- const victory=table(4,{settlement:{completed:true,winnerIds:['user'],deltasByPlayer:{user:20}},history:wager.projection.history});
- assert.deepEqual(tableSounds(wager,victory),['chip','win']);
- assert.deepEqual(tableSounds(wager,table(4,{settlement:{completed:true,winnerIds:['user','ai'],deltasByPlayer:{user:0}}})),['chip']);
- assert.deepEqual(tableSounds(wager,table(4,{settlement:{completed:true,winnerIds:['ai'],deltasByPlayer:{user:-20}}})),['lose']);
 });
 
 test('a deal is local or a live redeal, and resumed or replayed observations are silent',()=>{
@@ -72,6 +68,30 @@ function audioClock({reject=null}={}){
  return {sound,audio,advance,element};
 }
 const closeTo=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-4,`${actual} vs ${expected}`);
+
+test('only Dou Dizhu plays win or lose at settlement, and Texas pot wins still play chip',()=>{
+ const outcomes=[
+  {type:'texas',delta:20,winners:['user'],cue:'chip',duckDb:-5},
+  {type:'texas',delta:-20,winners:['ai'],cue:null,duckDb:0},
+  {type:'texas',delta:0,winners:['user','ai'],cue:'chip',duckDb:-5},
+  {type:'doudizhu',delta:20,winners:['user'],cue:'win',duckDb:-10},
+  {type:'doudizhu',delta:-20,winners:['ai'],cue:'lose',duckDb:-10},
+  {type:'doudizhu',delta:0,winners:['user','ai'],cue:null,duckDb:0},
+ ];
+ for(const {type,delta,winners,cue,duckDb} of outcomes){
+  const before=table(1,{type});
+  const settlement={completed:true,winnerIds:winners,deltasByPlayer:{user:delta}};
+  const after=table(2,{type,settlement,status:'completed'});
+  const cues=tableSounds(before,after);
+  assert.deepEqual(cues,cue?[cue]:[],type+' delta '+delta);
+
+  const {sound,element,advance}=audioClock();
+  const track=audioScene('table',before);
+  sound.scene(track);advance(1200);
+  sound.cues(cues);advance(40);
+  closeTo(element(track).volume,.4*10**(duckDb/20));
+ }
+});
 
 test('ALL IN has no cue or ducking and still enters tension',()=>{
  const before=table(1,{actor:'user'}), after=table(2,{players:[{id:'user',allIn:true}],history:[{type:'all-in',actorId:'user',amount:20}]});

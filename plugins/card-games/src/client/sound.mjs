@@ -37,14 +37,13 @@ export function tableSounds(previous,table,{localDeal=false}={}){
  const paid=!userShove&&after.history?.slice(before.history?.length??0).some(action=>action.actorId===user&&['raise','call'].includes(action.type)&&action.amount>0);
  const result=after.settlement?.completed&&!before.settlement?.completed?after.settlement:null;
  const wonPot=after.type==='texas'&&result?.winnerIds?.includes(user);
- const delta=result?.deltasByPlayer?.[user];
- const tie=after.type==='texas'&&wonPot&&(result.pots?.length
-  ?result.pots.filter(pot=>pot.winnerIds.includes(user)).every(pot=>pot.winnerIds.length>1)
-  :result.winnerIds.length>1);
  if(paid||wonPot)cues.push('chip');
  if(after.actorId===user&&(before.actorId!==user||before.phase!==after.phase))cues.push('turn');
- if(!tie&&delta>0)cues.push('win');
- if(!tie&&delta<0)cues.push('lose');
+ if(after.type==='doudizhu'){
+  const delta=result?.deltasByPlayer?.[user];
+  if(delta>0)cues.push('win');
+  if(delta<0)cues.push('lose');
+ }
  return cues;
 }
 
