@@ -33,7 +33,6 @@ Background tracks (Generated with Suno).
 | `plane.ogg` | [Propeller plane by Breviceps](https://freesound.org/people/Breviceps/sounds/515293/), CC0 |
 | `bomb.ogg`, `rocket.ogg` | `bang_03.ogg` and `bang_01.ogg` from rubberduck's [25 CC0 bang / firework SFX](https://opengameart.org/content/25-cc0-bang-firework-sfx), CC0 |
 | `spring.ogg` | Project composition with harp samples from [VSCO 2 Community Edition](https://versilian-studios.com/vsco-community/) and Mark Trees samples from the [Versilian Community Sample Library](https://versilian-studios.com/vcsl/), both CC0 |
-| `allin.ogg` | Project mix of [AllInPushChips2.wav by Joma86](https://freesound.org/people/Joma86/sounds/532860/), low brass and horn samples from [VSCO 2 Community Edition](https://versilian-studios.com/vsco-community/), and bass drum and clash cymbal samples from the [Versilian Community Sample Library](https://versilian-studios.com/vcsl/), all CC0. The sub drop is synthesized. |
 | `win.ogg`, `lose.ogg` | Project compositions with Steinway B piano samples from the [Versilian Community Sample Library](https://versilian-studios.com/vcsl/), CC0 |
 
 Only the rendered effects are bundled.

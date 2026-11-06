@@ -69,24 +69,25 @@ export function useCardAudio(React,client,sound,ready){
    if(!loaded||!event.isTrusted)return;
    sound.unlock();
    const button=event.target?.closest?.('button');
-   if(!button||button.disabled||button.closest('[data-audio-settings],[data-overlay="replay"],[data-game-control="replay"]'))return;
+   if(!button||button.disabled||button.closest('[data-audio-settings],[data-overlay="replay"],[data-game-control="replay"],[data-game-action="all-in"],[data-audio-silent]'))return;
    if(button.closest('.cg-controls,[data-user-card],[data-game-control]'))sound.effect('tap');
   },
   reset(){liveEffects.current.clear();board.current=null;presentationCues.current=[];sound.clearCues();},
   observe(previous,candidate,localDeal){
    const instant=[];
+   const before=audioProjection(previous),after=audioProjection(candidate);
+   const settlingShove=after?.settlement?.completed&&candidate.presentation?.events?.some(event=>event.kind==='allin');
    for(const cue of tableSounds(previous,candidate,{localDeal})){
-    if(['turn','win','lose'].includes(cue))presentationCues.current.push(cue);
+    if(['turn','win','lose'].includes(cue)||cue==='chip'&&settlingShove)presentationCues.current.push(cue);
     else instant.push(cue);
    }
    sound.cues(instant);
-   const before=audioProjection(previous),after=audioProjection(candidate);
    if(!isLiveAudioUpdate(previous,candidate)||before?.handId!==after?.handId)return;
    for(const event of candidate.presentation?.events??[])if(event.id)liveEffects.current.add(event.id);
    if(liveEffects.current.size>128)liveEffects.current=new Set([...liveEffects.current].slice(-64));
    if(after.board?.length>before?.board?.length)board.current={count:after.board.length,handId:after.handId};
   },
-  onEffect(event){if(liveEffects.current.delete(event.id))sound.effect(fxSound(event.kind));},
+  onEffect(event){const cue=fxSound(event.kind);if(liveEffects.current.delete(event.id)&&cue)sound.effect(cue);},
   onBoardReveal(handId,count,added){
    if(board.current?.handId===handId&&count<=board.current.count){
     sound.cues(Array(Math.min(3,added)).fill('flip'));

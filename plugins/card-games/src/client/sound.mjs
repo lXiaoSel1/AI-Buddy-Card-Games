@@ -2,8 +2,8 @@ import {audioSettings,DEFAULT_AUDIO} from '../audio-mix.mjs';
 import {packagedAsset} from './visual.mjs';
 
 const BGM=Object.freeze({lobby:0,ddz:0,texas:0,tension:56.82});
-const FX_AUDIO=Object.freeze({landlord:'landlord',plane:'plane',bomb:'bomb',rocket:'rocket',spring:'spring',antispring:'spring',allin:'allin'});
-const DUCK=Object.freeze({deal:-5,flip:-5,tap:-5,turn:-5,chip:-5,landlord:-10,plane:-10,bomb:-10,rocket:-10,spring:-10,allin:-10,win:-10,lose:-10});
+const FX_AUDIO=Object.freeze({landlord:'landlord',plane:'plane',bomb:'bomb',rocket:'rocket',spring:'spring',antispring:'spring'});
+const DUCK=Object.freeze({deal:-5,flip:-5,tap:-5,turn:-5,chip:-5,landlord:-10,plane:-10,bomb:-10,rocket:-10,spring:-10,win:-10,lose:-10});
 const source=id=>packagedAsset('audio/'+id+'.ogg');
 export const audioProjection=table=>table?.projection??table?.hand?.projection??table?.hand;
 export const isLiveAudioUpdate=(before,after)=>before?.tableId===after.tableId&&before.status==='active'&&after.version===before.version+1;
@@ -33,7 +33,8 @@ export function tableSounds(previous,table,{localDeal=false}={}){
  if(!live||newDeal)return [];
  const cues=[];
  if(after.type==='doudizhu'&&!before.bottom?.length&&after.bottom?.length)cues.push(...after.bottom.slice(0,3).map(()=> 'flip'));
- const paid=after.history?.slice(before.history?.length??0).some(action=>action.actorId===user&&['raise','call','all-in'].includes(action.type)&&action.amount>0);
+ const userShove=table.presentation?.events?.some(event=>event.kind==='allin'&&event.actorId===user);
+ const paid=!userShove&&after.history?.slice(before.history?.length??0).some(action=>action.actorId===user&&['raise','call'].includes(action.type)&&action.amount>0);
  const result=after.settlement?.completed&&!before.settlement?.completed?after.settlement:null;
  const wonPot=after.type==='texas'&&result?.winnerIds?.includes(user);
  const delta=result?.deltasByPlayer?.[user];
@@ -49,7 +50,7 @@ export function tableSounds(previous,table,{localDeal=false}={}){
 
 export function createCardSound({makeAudio=src=>new Audio(src),now=()=>performance.now(),setTimer=setTimeout,clearTimer=clearTimeout}={}){
  const tracks=new Map(),effects=new Set(),delayed=new Set();
- let settings=DEFAULT_AUDIO,selected=null,visible=true,disposed=false,blocked=false,timer=null;
+ let settings=DEFAULT_AUDIO,selected=null,visible=true,disposed=false,blocked=false,timer=null,waiting=null;
  let duck=0,duckTween=null,deepest=0,lastChip=-Infinity,lastFlip=-Infinity;
  const volume=(audio,value)=>{audio.volume=Math.max(0,Math.min(1,value));};
  const pause=audio=>{try{audio.pause();}catch{}};
@@ -66,6 +67,15 @@ export function createCardSound({makeAudio=src=>new Audio(src),now=()=>performan
    const {from,to,start,end}=slot.fade;
    slot.gain=from+(to-from)*Math.min(1,(at-start)/(end-start));
    if(at>=end){slot.fade=null;if(to===0)pause(slot.audio);}else ends.push(end);
+  }
+  if(waiting){
+   if(at<waiting.at)ends.push(waiting.at);
+   else{
+    const {id,slot,ms}=waiting;
+    waiting=null;
+    activate(id,slot,ms);
+    if(slot.fade)ends.push(slot.fade.end);
+   }
   }
   if(duckTween){
    const {from,to,start,end}=duckTween,curve=to<from?1:3,progress=Math.min(1,(at-start)/(end-start));
@@ -97,6 +107,13 @@ export function createCardSound({makeAudio=src=>new Audio(src),now=()=>performan
     if(disposed||!slot.gain&&!slot.fade&&(!visible||selected!==id))pause(slot.audio);
    },error=>{if(error?.name==='NotAllowedError')blocked=true;else if(error?.name!=='AbortError')slot.failed=true;}).finally(()=>{slot.pending=null;});
   }catch{slot.failed=true;}
+ }
+ function activate(id,slot,ms){fade(slot,1,ms);slot.visited=true;start(id,slot);}
+ function playAfterFade(id,slot,ms){
+  const time=now();
+  const at=Math.max(time,...[...tracks.values()].filter(other=>other!==slot&&other.fade?.to===0).map(other=>other.fade.end));
+  if(at>time)waiting={id,slot,ms,at};
+  else activate(id,slot,ms);
  }
  function clearCues(){
   for(const id of delayed)clearTimer(id);
@@ -130,23 +147,29 @@ export function createCardSound({makeAudio=src=>new Audio(src),now=()=>performan
   scene(id,{leavingTable=false,resumingTable=false}={}){
    if(disposed||selected===id||!Object.hasOwn(BGM,id))return;
    const before=selected,slot=track(id);
-   selected=id;
+   selected=id;waiting=null;
    if(id==='tension'&&slot&&!resumingTable)slot.entry=true;
    if(!visible)return;
    const ms=id==='tension'?250:before==='tension'?1500:1200;
-   for(const [name,current] of tracks)if(name!==id)fade(current,0,leavingTable?400:ms);
-   if(slot){fade(slot,1,resumingTable||leavingTable&&slot.visited?800:ms);slot.visited=true;start(id,slot);}
+   const replace=before==='tension'||id==='tension'||tracks.get('tension')?.audio.paused===false;
+   const out=leavingTable?400:replace?ms/2:ms;
+   for(const [name,current] of tracks)if(name!==id)fade(current,0,out);
+   if(slot){
+    const fadeIn=resumingTable||leavingTable&&slot.visited?800:replace&&!leavingTable?ms/2:ms;
+    if(replace)playAfterFade(id,slot,fadeIn);
+    else activate(id,slot,fadeIn);
+   }
    update();
   },
   setVisible(value){
    if(disposed||visible===value)return;
    visible=value;
-   if(!value){clearEffects();for(const slot of tracks.values())fade(slot,0,400);}
-   else if(selected&&tracks.has(selected)){const slot=tracks.get(selected);fade(slot,1,800);slot.visited=true;start(selected,slot);}
+   if(!value){waiting=null;clearEffects();for(const slot of tracks.values())fade(slot,0,400);}
+   else if(selected&&tracks.has(selected))playAfterFade(selected,tracks.get(selected),800);
    update();
   },
   mix(value){settings=audioSettings(value,settings);mix();},
-  unlock(){blocked=false;if(selected)start(selected,tracks.get(selected));},
+  unlock(){blocked=false;if(selected&&!waiting)start(selected,tracks.get(selected));},
   effect,
   cues(ids){
    if(!visible||disposed)return;
@@ -160,6 +183,6 @@ export function createCardSound({makeAudio=src=>new Audio(src),now=()=>performan
    }
   },
   clearCues,
-  dispose(){disposed=true;clearEffects();if(timer!==null)clearTimer(timer);for(const slot of tracks.values())pause(slot.audio);tracks.clear();},
+  dispose(){disposed=true;waiting=null;clearEffects();if(timer!==null)clearTimer(timer);for(const slot of tracks.values())pause(slot.audio);tracks.clear();},
  };
 }

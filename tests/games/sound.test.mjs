@@ -37,9 +37,9 @@ test('a deal is local or a live redeal, and resumed or replayed observations are
 });
 
 test('approved effects have audio and every ordinary or large Texas rank stays silent',()=>{
- for(const name of ['landlord','plane','bomb','rocket','spring','allin'])assert.equal(fxSound(name),name);
+ for(const name of ['landlord','plane','bomb','rocket','spring'])assert.equal(fxSound(name),name);
  assert.equal(fxSound('antispring'),'spring');
- for(const name of ['royal','straightflush','quads','fullhouse','flush','straight','trips','ddzstraight','chainpair','twopair','pair','call','play','check'])assert.equal(fxSound(name),null);
+ for(const name of ['allin','royal','straightflush','quads','fullhouse','flush','straight','trips','ddzstraight','chainpair','twopair','pair','call','play','check'])assert.equal(fxSound(name),null);
 });
 
 test('tension stays with the hand until it settles',()=>{
@@ -73,18 +73,38 @@ function audioClock({reject=null}={}){
 }
 const closeTo=(actual,expected)=>assert.ok(Math.abs(actual-expected)<1e-4,`${actual} vs ${expected}`);
 
-test('a scene crossfades, starts tension at 56.82, and pauses and resumes in place',async()=>{
+test('ALL IN has no cue or ducking and still enters tension',()=>{
+ const before=table(1,{actor:'user'}), after=table(2,{players:[{id:'user',allIn:true}],history:[{type:'all-in',actorId:'user',amount:20}]});
+ after.presentation={events:[{id:'shove',kind:'allin',actorId:'user'}]};
+ assert.deepEqual(tableSounds(before,after),[]);
+ after.projection.history[0].type='call';
+ assert.deepEqual(tableSounds(before,after),[]);
+ const {sound,audio,element,advance}=audioClock();
+ sound.scene('texas');advance(1200);
+ sound.effect(fxSound('allin'));
+ sound.effect('allin');advance(40);
+ assert.equal(audio.length,1);closeTo(element('texas').volume,.4);
+ sound.scene(audioScene('table',after));advance(250);
+ assert.equal(audio.length,2);assert.equal(element('texas').paused,true);
+ assert.equal(element('tension').currentTime,56.82);closeTo(element('tension').volume,.4);
+});
+
+test('tension replaces table music without overlap and restores its paused position',async()=>{
  const {sound,element,advance}=audioClock();
  sound.scene('texas');advance(1200);closeTo(element('texas').volume,.4);
+ element('texas').currentTime=19.5;
  await Promise.resolve();
- sound.scene('tension');assert.equal(element('tension').currentTime,56.82);
- advance(250);closeTo(element('tension').volume,.4);assert.equal(element('texas').paused,true);
+ sound.scene('tension');advance(100);assert.equal(element('tension').paused,true);
+ advance(25);assert.equal(element('texas').paused,true);assert.equal(element('tension').currentTime,56.82);
+ advance(125);closeTo(element('tension').volume,.4);
  element('tension').currentTime=61;
  sound.scene('tension');assert.equal(element('tension').currentTime,61);
  await Promise.resolve();
  sound.setVisible(false);advance(400);assert.equal(element('tension').paused,true);
  sound.setVisible(true);assert.equal(element('tension').currentTime,61);advance(800);closeTo(element('tension').volume,.4);
- sound.scene('texas');advance(1500);closeTo(element('texas').volume,.4);assert.equal(element('tension').paused,true);
+ sound.scene('texas');advance(700);assert.equal(element('texas').paused,true);
+ advance(50);assert.equal(element('tension').paused,true);assert.equal(element('texas').currentTime,19.5);
+ advance(750);closeTo(element('texas').volume,.4);
  element('texas').currentTime=20;sound.scene('lobby',{leavingTable:true});advance(400);assert.equal(element('texas').paused,true);
  sound.scene('texas',{resumingTable:true});advance(800);assert.equal(element('texas').currentTime,20);closeTo(element('texas').volume,.4);
 });
@@ -96,6 +116,15 @@ test('overlapping effects hold the deepest attenuation until the last one ends',
  sound.effect('rocket');advance(40);closeTo(element('lobby').volume,.4*10**(-10/20));
  element('rocket').dispatchEvent(new Event('ended'));advance(500);closeTo(element('lobby').volume,.4*10**(-10/20));
  element('deal').dispatchEvent(new Event('ended'));advance(500);closeTo(element('lobby').volume,.4);
+});
+
+test('leaving during the tension exit keeps the lobby silent until tension pauses',async()=>{
+ const {sound,element,advance}=audioClock();
+ sound.scene('texas');advance(1200);await Promise.resolve();
+ sound.scene('tension');advance(250);await Promise.resolve();
+ sound.scene('texas');advance(100);assert.equal(element('texas').paused,true);
+ sound.scene('lobby',{leavingTable:true});advance(399);assert.equal(element('lobby').paused,true);
+ advance(1);assert.equal(element('tension').paused,true);assert.equal(element('lobby').paused,false);
 });
 
 test('flip and chip cues are spaced and hidden pages discard queued effects',()=>{

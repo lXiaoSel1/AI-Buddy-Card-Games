@@ -300,7 +300,7 @@ function hand(){
     const variant=action.type==='fold'?'danger':action.type==='all-in'||ddz&&action.type==='double'&&action.factor===2?'gold':
      ddz&&['call-landlord','rob'].includes(action.type)?'':'quiet';
     const label=ddz&&action.type==='double'&&action.factor===2?t('加倍 ×2','Double ×2'):actionLabel(action);
-    return gb(label+suffix,()=>p.action(action.type==='all-in'?{type:'all-in'}:action),false,variant,{key:action.type+'-'+index,'data-game-action':action.type});
+    return gb(label+suffix,()=>p.action(action.type==='all-in'?{type:'all-in'}:action),false,variant,{key:action.type+'-'+index,'data-game-action':action.type,'data-audio-silent':action.type==='call'&&shortAllIn||undefined});
    });
   if(ddz&&v.phase==='playing'){
    const play=pattern=>p.action({type:'play',cards:p.selected,pattern:pattern.pattern,bodyRanks:pattern.bodyRanks});
@@ -326,7 +326,7 @@ function hand(){
      h('label',{htmlFor:'cg-raise-amount'},t('加注到','Raise to')),
      h('input',{type:'range',id:'cg-raise-amount',min,max,step:1,value:amount,onChange:e=>p.setRaiseTo(e.target.value),'aria-label':t('加注金额','Raise amount')}),
      h('output',{className:'cg-raise-value',htmlFor:'cg-raise-amount'},amount),
-     h('div',{className:'cg-raise-quick'},...presets.map(([label,value])=>button(label+' '+value,()=>p.setRaiseTo(String(value)),false,{key:label})))),
+     h('div',{className:'cg-raise-quick'},...presets.map(([label,value])=>button(label+' '+value,()=>p.setRaiseTo(String(value)),false,{key:label,'data-audio-silent':label==='ALL IN'||undefined})))),
     h('div',{className:'cg-action-buttons'},...choices));
    }
    return h('div',{className:'cg-controls texas'},h('div',{className:'cg-action-buttons'},...choices));
