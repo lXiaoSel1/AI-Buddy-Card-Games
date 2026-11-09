@@ -1,6 +1,6 @@
 {
   "packageName": "@ai-buddy/card-games",
-  "exactVersion": "1.1.4",
+  "exactVersion": "1.1.5",
   "compatibility": {
     "app": ">=2.0.4",
     "dsh": ">=0.2.1-rc.3",

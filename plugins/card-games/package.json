@@ -1,6 +1,6 @@
 {
   "name": "@ai-buddy/card-games",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "AI Buddy native Dou Dizhu and no-limit Texas points tables",
   "type": "module",
   "main": "lib/index.js",

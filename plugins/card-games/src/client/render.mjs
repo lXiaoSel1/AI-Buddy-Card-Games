@@ -560,7 +560,7 @@ function topup(){
    event.cards?.length===5&&h('div',{className:'cg-cut-cards'},cards(event.cards,66))));
  }
  const stateTitle=p.ready?t('先升级 AI 酱','Update AI Buddy first'):t('正在检查插件','Checking plugin');
- const isDialog=['setup','seats','wallet','chat','pause','leave','more','history','replay','topup'].includes(overlay);
+ const isDialog=['setup','seats','wallet','chat','pause','leave','void-hand','more','history','replay','topup'].includes(overlay);
  const isDrawer=['wallet','chat'].includes(overlay);
  const stageStyle={height:fit.height+'px','--dy':fit.shift+'px',transform:'translateX('+fit.x+'px) scale('+fit.scale+')'};
  const rootStyle=themeBackground?{backgroundImage:'url('+themeBackground+')'}:undefined;
@@ -572,9 +572,12 @@ function topup(){
   model&&quiet(t('模型','Model')+' · '+t(...(MODEL_STATES[model.status]??['模型已回复','Model replied']))+(model.latencyMs!=null?' · '+Math.round(model.latencyMs)+' ms':'')+(model.corrections!=null?' · '+t('纠错 ','Corrections ')+model.corrections:'')),
   field(t('提供角色策略框架','Give characters a strategy framework'),h('input',{type:'checkbox',checked:!!p.strategy,onChange:e=>p.setStrategy(e.target.checked)})),
   row(ib(t('刷新状态','Refresh'),refresh),ib(t('公开行动记录','Public action history'),()=>show('history'),false),ib(t('离开牌桌','Leave table'),()=>show('leave'),closed||p.busy||modelBusy||p.boardBusy))]);
+ const bindingRecovery=table?.bindingRecovery===true;
+ const recoveryControls=()=>[gb(t('作废这一手','Void this hand'),()=>show('void-hand'),p.busy,'quiet'),gb(t('用现在的连接继续','Continue with the current connection'),async()=>{if(await p.tableCommand('games.table.resume',{rebindCurrent:true,confirmed:true}))close();},p.busy)];
+ const voidHand=table&&modal('void-hand',t('作废这一手','Void this hand'),[quiet(t('这一手不算输赢，押上的积分全部退回。','This hand will not count as a win or loss. All reserved points will be returned.'))],[gb(t('取消','Cancel'),()=>show('pause'),p.busy,'quiet'),gb(t('作废并退回','Void and refund'),()=>p.tableCommand('games.table.leave',{voidHand:true,confirmed:true}),p.busy,'danger')]);
  const pause=table&&modal('pause',t('牌局已暂停','Game paused'),[
-  quiet(t('这局已保存。恢复后接着打同一手牌，不会自动请求模型。','Saved. Resuming continues the same hand and asks no model by itself.'))],
-  [gb(t('本局后离开','Leave after hand'),()=>show('leave'),p.busy,'quiet'),gb(t('恢复牌局','Resume'),async()=>{if(await p.tableCommand('games.table.resume'))close();},p.busy)],'cg-pause-sheet');
+  quiet(bindingRecovery?t('这位角色的模型连接改过了。','This character’s model connection has changed.'):t('这局已保存。恢复后接着打同一手牌，不会自动请求模型。','Saved. Resuming continues the same hand and asks no model by itself.'))],
+  bindingRecovery?recoveryControls():[gb(t('本局后离开','Leave after hand'),()=>show('leave'),p.busy,'quiet'),gb(t('恢复牌局','Resume'),async()=>{if(await p.tableCommand('games.table.resume'))close();},p.busy)],'cg-pause-sheet');
  const leaveOptions=[
   ['after',ddz?t('本局后离开','After this game'):t('本手后离开','After this hand'),ddz?t('完成本局后离开，已有行动会保留。','Finish this game; completed moves will be kept.'):t('打完这手再走，筹码回到钱包。','Finish the hand; chips return to your wallet.')],
   ...(!ddz&&!p.paused?[['now',t('立即离开','Leave now'),t('没 ALL IN 就算弃牌，已下的注留在底池。已 ALL IN 会保留摊牌资格。','If not ALL IN you fold and your bets stay in the pot. ALL IN players keep showdown eligibility.')]]:[])
@@ -595,7 +598,7 @@ function topup(){
  const errors=(p.error||p.errorCode||failed)&&h('div',{className:'cg-error',role:'alert'},
   h('span',null,faultActor?t(name(faultActor)+' 这步没出成：'+reason,name(faultActor)+' could not move. '+reason):reason),
   p.pendingRetry&&h(React.Fragment,null,gb(t('核对','Check'),p.checkPending??refresh,p.busy,'',{'aria-label':t('核对保存状态','Check saved state')}),gb(t('重试同一命令','Retry same command'),p.retry,p.busy,'quiet')),
-  !p.pendingRetry&&failed&&(p.paused?gb(t('恢复牌局','Resume'),()=>show('pause'),p.busy):h(React.Fragment,null,
+  !p.pendingRetry&&failed&&(p.paused?bindingRecovery?h(React.Fragment,null,...recoveryControls()):gb(t('恢复牌局','Resume'),()=>show('pause'),p.busy):h(React.Fragment,null,
    gb(t('重试','Retry'),p.startModel,p.busy||modelBusy||presentationBusy||p.isUser||!activePlayer||closed),
    gb(t('暂停','Pause'),async()=>{if(await p.tableCommand('games.table.pause'))show('pause');},p.busy||presentationBusy||closed,'quiet'))),
   compactClose(()=>{p.setError('');p.clearModelStatus?.();},t('关闭提示','Dismiss')));
@@ -605,8 +608,8 @@ function topup(){
    h('div',{className:'cg-stage-background'+(p.ready&&p.ready.mode!=='runtime'?' cg-host-upgrade':(screen==='lobby'||ddz&&presentationSettled)?' cg-approved-brightness':''),style:rootStyle}),
    h('div',{className:'cg-content',ref:element=>{if(element)element.inert=isDialog;}},content),
    effect(),
-   isDialog&&h('button',{className:'cg-scrim'+(isDrawer?' cg-drawer-scrim':['pause','leave'].includes(overlay)?' cg-pause-scrim':''),type:'button',onClick:close,tabIndex:-1,'aria-hidden':true}),
-   p.ready?.mode==='runtime'&&h(React.Fragment,null,setup(),wallet(),topup(),table&&chat(),gameMenu,pause,leave,table&&history(),replay()),
+   isDialog&&h('button',{className:'cg-scrim'+(isDrawer?' cg-drawer-scrim':['pause','leave','void-hand'].includes(overlay)?' cg-pause-scrim':''),type:'button',onClick:close,tabIndex:-1,'aria-hidden':true}),
+   p.ready?.mode==='runtime'&&h(React.Fragment,null,setup(),wallet(),topup(),table&&chat(),gameMenu,pause,leave,voidHand,table&&history(),replay()),
    errors));
 }
 
