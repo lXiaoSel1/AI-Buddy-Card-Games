@@ -11,7 +11,7 @@
 
 [AI 酱本体](https://github.com/lXiaoSel1/AI-Buddy) · [B站陪伴](https://github.com/lXiaoSel1/AI-Buddy-Bilibili) · [QQ连接](https://github.com/lXiaoSel1/AI-Buddy-QQ) · **一起玩牌**（本仓库）
 
-**当前版本：1.0.0** · 需要 [AI 酱](https://github.com/lXiaoSel1/AI-Buddy) 2.0.4 或更新版本，建议用 2.0.5 或更新版本：在 2.0.4 里，这个页面和 B站、QQ 页面切换时可能卡在「启动中」。这是 AI 酱的官方插件，在 AI 酱的 **扩展中心** 里安装，不用单独下载。
+**当前版本：1.1.3** · 需要 [AI 酱](https://github.com/lXiaoSel1/AI-Buddy) 2.0.4 或更新版本，建议用 2.0.5 或更新版本：在 2.0.4 里，这个页面和 B站、QQ 页面切换时可能卡在「启动中」。这是 AI 酱的官方插件，在 AI 酱的 **扩展中心** 里安装，不用单独下载。
 
 和 AI 酱里的角色打斗地主和德州扑克。她们坐在牌桌后面，用各自绑定的模型决定每一步，会换表情，也可能说一句。规则和结算由 AI 酱本体负责，模型只提出行动，不合法的行动不会执行。
 
@@ -93,7 +93,7 @@
 
 ## 技术说明
 
-插件包名 `@ai-buddy/card-games`，版本 1.0.0，需要本体的 `voice-games-v1` 能力。这个仓库包含插件源码，页面入口 `plugins/card-games/src/client`，规则在 `plugins/card-games/src/rules`。积分、结算、牌局存档和模型调用在 [AI 酱本体](https://github.com/lXiaoSel1/AI-Buddy)里。
+插件包名 `@ai-buddy/card-games`，版本 1.1.3，需要本体的 `voice-games-v1` 能力。这个仓库包含插件源码，页面入口 `plugins/card-games/src/client`，规则在 `plugins/card-games/src/rules`。积分、结算、牌局存档和模型调用在 [AI 酱本体](https://github.com/lXiaoSel1/AI-Buddy)里。
 
 ## 许可与第三方
 
@@ -103,7 +103,7 @@
 
 ## English
 
-**Version 1.0.0** · requires [AI Buddy](https://github.com/lXiaoSel1/AI-Buddy) 2.0.4 or later. Use 2.0.5 or later if you can: in 2.0.4 this page can stick on "Starting" when you switch from the Bilibili or QQ page. It is an official AI Buddy plugin, installed from the **Extensions** center, so there is nothing to download separately.
+**Version 1.1.3** · requires [AI Buddy](https://github.com/lXiaoSel1/AI-Buddy) 2.0.4 or later. Use 2.0.5 or later if you can: in 2.0.4 this page can stick on "Starting" when you switch from the Bilibili or QQ page. It is an official AI Buddy plugin, installed from the **Extensions** center, so there is nothing to download separately.
 
 Play Dou Dizhu and Texas Hold'em with your AI Buddy characters. They sit behind the table, use their own bound models to decide each move, change expressions and sometimes say a line. The app handles rules and settlement. A model can only propose a move, and an illegal move is never played.
 
@@ -166,8 +166,16 @@ Games, points and affection stay in AI Buddy on your computer. The plugin page c
 
 ### Technical notes
 
-Package `@ai-buddy/card-games` 1.0.0, requires the app's `voice-games-v1` feature. This repository holds the plugin source: the page in `plugins/card-games/src/client` and the rules in `plugins/card-games/src/rules`. Points, settlement, saved games and model calls live in the [AI Buddy app](https://github.com/lXiaoSel1/AI-Buddy).
+Package `@ai-buddy/card-games` 1.1.3, requires the app's `voice-games-v1` feature. This repository holds the plugin source: the page in `plugins/card-games/src/client` and the rules in `plugins/card-games/src/rules`. Points, settlement, saved games and model calls live in the [AI Buddy app](https://github.com/lXiaoSel1/AI-Buddy).
 
 ### License and third parties
 
 Source available under Apache-2.0 + Commons Clause, see [LICENSE.md](LICENSE.md). You may use, modify and share it for free, but not sell it. See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for artwork and font sources: character cards use existing AI Buddy characters as references, and the terms for that artwork apply.
+
+## 1.1.3
+
+沿用本机 1.1.2 的牌桌恢复、语音与字幕同步和音频设置修复，保留大厅与牌桌 BGM、音效及独立音量。斗地主和德州规则、素材、四项权限与 voice-games-v1 合同保持原值。语音需要本体及用户配置；本包不含私人声线或账号。本轮不增加业务行为。
+
+Publishes local 1.1.2 table-recovery, speech/subtitle synchronization and audio-setting fixes, preserving lobby/table music, effects and separate volume controls. Rules, assets, the four permissions and the voice-games-v1 contract are unchanged. Voice requires the host and user configuration; no private voice references or accounts are included. This preparation adds no new runtime behavior.
+
+[1.1.3 发行说明 / Release notes](RELEASE-NOTES-1.1.3.md)

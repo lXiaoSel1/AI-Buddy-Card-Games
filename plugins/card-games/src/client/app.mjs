@@ -8,6 +8,7 @@ import {actionCommand} from './action-command.mjs';
 import {createDdzLifecycle} from './ddz-lifecycle.mjs';
 import {createCardSound} from './sound.mjs';
 import {useCardAudio} from './use-card-audio.mjs';
+import {useCardSpeechDisplay} from './speech-display.mjs';
 import {acceptsTableObservation,commandCanRetry,commandOutcome,commandReadPayload,startSingleFlightPoll,viewScopeIsCurrent} from './operation-state.mjs';
 
 const waitStage=turn=>turn&&({...turn,phase:turn.stage==='generating'?'thinking':turn.stage});
@@ -28,11 +29,12 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[errorCode,setErrorCode]=useState(null),[selected,setSelected]=useState([]),[pattern,setPattern]=useState(''),[raiseTo,setRaiseTo]=useState(''),[messages,setMessages]=useState([]),[text,setText]=useState('');
   const [replay,setReplay]=useState(null),[review,setReview]=useState(null),[reviewCharacter,setReviewCharacter]=useState(''),[reviewBusy,setReviewBusy]=useState(false),[strategy,setStrategy]=useState(false),[autoAI,setAutoAI]=useState(false),[pendingRetry,setPendingRetry]=useState(null),[modelStatus,setModelStatus]=useState(null),[dismissedModel,setDismissedModel]=useState(null),[modelWaitLong,setModelWaitLong]=useState(false),[localTurn,setLocalTurn]=useState(null);
   const [chatBusy,setChatBusy]=useState(false),[chatCharacter,setChatCharacter]=useState(''),[chatReceipt,setChatReceipt]=useState(null),[chatRetry,setChatRetry]=useState(null),[chatSpeech,setChatSpeech]=useState(null);
+  const [chatVoice,setChatVoice]=useState(null);
   const [screen,setScreen]=useState('lobby'),[overlay,setOverlayState]=useState(null),[topup,setTopup]=useState('20');
   const audio=useCardAudio(React,client,sound,ready);
   const [ddzPresentation,setDdzPresentation]=useState(null),ddzLifecycle=useRef(null);
   ddzLifecycle.current??=createDdzLifecycle({onChange:setDdzPresentation});
-  const stageRef=useRef(null),live=useRef(true),epoch=useRef(0),sequence=useRef(0),observation=useRef(null),lastAuto=useRef(''),selectedTable=useRef(null),tableRef=useRef(null);
+  const stageRef=useRef(null),live=useRef(true),epoch=useRef(0),sequence=useRef(0),observation=useRef(null),lobbySequence=useRef(0),lastAuto=useRef(''),selectedTable=useRef(null),tableRef=useRef(null);
   const commandRequest=useRef(null),localTurns=useRef(new Map()),chatRequest=useRef(null),chatObservation=useRef(null),reviewRequest=useRef(null),replayRead=useRef(null);
   const uuid=()=>globalThis.crypto.randomUUID();
   const scope=()=>({epoch:epoch.current,tableId:selectedTable.current});
@@ -46,8 +48,8 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
    (async()=>{try{
     const state=await client.readiness();if(disposed)return;setReady(state);
     if(state.mode!=='runtime')return;
-    const list=await client.invoke('games.table.read',{});
-    if(!disposed&&current(initial))setLobby(list);
+    const seq=++sequence.current,list=await client.invoke('games.table.read',{});
+    if(!disposed)applyLobby(list,initial,seq);
    }catch(error){if(!disposed&&current(initial))showError(error);}})();
    return()=>{disposed=true;live.current=false;epoch.current++;ddzLifecycle.current.dispose();};
   },[]);
@@ -59,7 +61,7 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
    audio.reset();
    commandRequest.current=null;chatRequest.current=null;chatObservation.current=null;reviewRequest.current=null;replayRead.current=null;
    setTable(null);setBusy(false);setChatBusy(false);setReviewBusy(false);setAutoAI(false);clearError();setPendingRetry(null);setModelStatus(null);setDismissedModel(null);setModelWaitLong(false);setLocalTurn(localTurns.current.get(tableId)?.turn??null);
-   setReplay(null);setReview(null);setSelected([]);setMessages([]);setText('');setChatCharacter('');setChatReceipt(null);setChatRetry(null);setChatSpeech(null);setOverlayState(null);
+   setReplay(null);setReview(null);setSelected([]);setMessages([]);setText('');setChatCharacter('');setChatReceipt(null);setChatRetry(null);setChatSpeech(null);setChatVoice(null);setOverlayState(null);
    return scope();
   }
   function applyTable(value,captured,seq,localDeal=false){
@@ -86,13 +88,19 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
    });
    return true;
   }
+  function applyLobby(value,captured,seq){
+   if(!current(captured)||seq<lobbySequence.current)return false;
+   lobbySequence.current=seq;setLobby(value);
+   setRoster(old=>old.filter(id=>(value.charactersAvailable??[]).some(character=>character.id===id)));
+   return true;
+  }
   async function refresh(id=null){
    const captured=scope(),seq=++sequence.current;
    let value;try{value=await client.invoke('games.table.read',id?{tableId:id}:{});}
    catch(error){if(current(captured))throw error;return null;}
    if(!current(captured))return null;
    if(id){if(!applyTable(value,captured,seq))return null;}
-   else{setLobby(value);setRoster(old=>old.filter(id=>(value.charactersAvailable??[]).some(character=>character.id===id)));}
+   else if(!applyLobby(value,captured,seq))return null;
    return value;
   }
   function showLobby(){
@@ -153,7 +161,7 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
     if(outcome==='applied'){setPendingRetry(null);clearError();adoptCommandResult(request,value,captured,seq);}
     else if(outcome==='stale'){applyTable(value,captured,seq);setPendingRetry(null);showError({code:'GAME_STALE_VERSION',message:'The table has changed. Choose a new action.'});}
     else if(payload.tableId)applyTable(value,captured,seq);
-    else setLobby(value);
+    else applyLobby(value,captured,seq);
    }catch(error){if(current(captured)&&commandRequest.current===request)showError(error);}
    finally{if(commandRequest.current===request){commandRequest.current=null;if(current(captured))setBusy(false);}}
   }
@@ -167,7 +175,8 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
   const ddzDealing=ddzPresentation?.stage==='dealing',ddzDealCount=ddzDealing?ddzPresentation.count:null;
   const ddzEndStage=ddzDealing?null:ddzPresentation?.stage??null;
   const continueDdzSettlement=()=>ddzLifecycle.current.continueSettlement(ddzPresentation);
-  const visuals=useCardPresentation(React,client,{ready,lobby,table,view,players,screen,overlay,modelRequest,chatSpeech,stageRef,viewEpoch:epoch.current,
+  const speechDisplay=useCardSpeechDisplay(React,client,{table,chatSpeech,messages,chatVoice,screen,viewEpoch:epoch.current});
+  const visuals=useCardPresentation(React,client,{ready,lobby,table:speechDisplay.table,view,players,screen,overlay,modelRequest,chatSpeech:speechDisplay.chatSpeech,stageRef,viewEpoch:epoch.current,
    ddzFxToken:ddzEndStage==='holding'?ddzPresentation:null,onDdzFxDone:ddzLifecycle.current.finishFx,onEffect:audio.onEffect,onBoardReveal:audio.onBoardReveal});
   const audioRunout=visuals.boardBusy||visuals.allInPresenting;
   const audioPresentationBusy=audioRunout||ddzDealing||ddzEndStage==='holding';
@@ -239,7 +248,7 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
   useEffect(()=>{
    if(!table?.tableId||screen!=='table')return;
    const captured=scope(),seq=++sequence.current;let disposed=false;
-   client.invoke('games.chat.read',{tableId:captured.tableId}).then(value=>{if(!disposed&&current(captured))applyMessages(value.messages??[],seq);}).catch(()=>{});
+   client.invoke('games.chat.read',{tableId:captured.tableId}).then(value=>{if(!disposed&&current(captured))applyMessages(value.messages??[],seq,value);}).catch(()=>{});
    return ()=>{disposed=true;};
   },[table?.tableId,table?.version,screen]);
 
@@ -271,7 +280,8 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
   }
   function setOverlay(value){if(value!=='replay'){replayRead.current=null;if(reviewRequest.current)void cancelReview({detach:true});}setOverlayState(value);}
 
-  function applyMessages(items,seq){
+  function applyMessages(items,seq,value){
+   if(value?.presentation?.voice)setChatVoice(value.presentation.voice);
    if(!acceptsTableObservation(chatObservation.current,items.length,seq))return;
    chatObservation.current={version:items.length,sequence:seq};setMessages(items);
   }
@@ -283,7 +293,7 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
     if(!current(entry.captured)||chatRequest.current!==entry)return;
     const seq=++sequence.current,result=await client.invoke('games.chat.read',{tableId:payload.tableId});
     if(!current(entry.captured)||chatRequest.current!==entry||entry.replied)return;
-    applyMessages(result.messages??[],seq);
+    applyMessages(result.messages??[],seq,result);
     if((result.messages??[]).some(item=>item.role==='user'&&item.id===payload.submissionId)){
      setText(old=>old===payload.text?'':old);
      setChatReceipt(old=>normalizeChatReceipt({...result,assistant:result.assistant??{status:'waiting'}},{submissionId:payload.submissionId,previous:old}));
@@ -298,13 +308,13 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
    const owns=()=>current(captured)&&chatRequest.current===entry;
    try{
     const result=await client.invoke(request.method,request.payload);if(!owns())return;entry.replied=true;
-    const normalized=normalizeChatReceipt(result,{submissionId});setChatReceipt(normalized);
+    const normalized=normalizeChatReceipt(result,{submissionId});setChatReceipt(normalized);setChatVoice(result.presentation?.voice??null);
     const speaker=players.find(player=>player.characterId===result.assistant?.characterId);
     if(speaker&&result.assistant?.text)setChatSpeech({id:result.assistant.requestId??submissionId,actorId:speaker.id,text:result.assistant.text});
     if(normalized.inputAccepted===true)setText(old=>old===submitted?'':old);
-    const records=result.messages??(await client.invoke('games.chat.read',{tableId})).messages??[];
+    const observation=result.messages?result:await client.invoke('games.chat.read',{tableId}),records=observation.messages??[];
     if(!owns())return;
-    applyMessages(records,seq);setChatRetry(['failed','unavailable','unknown','cancelled'].includes(normalized.assistantStatus)?request:null);
+    applyMessages(records,seq,observation);setChatRetry(['failed','unavailable','unknown','cancelled'].includes(normalized.assistantStatus)?request:null);
    }catch(error){
     if(owns()){
      setChatReceipt(old=>normalizeChatReceipt({assistant:{status:entry.cancelled||cancellation(error)?'cancelled':'unknown',code:entry.cancelled?null:messageCode(error),retryAllowed:entry.cancelled}},{submissionId,previous:old}));
@@ -330,7 +340,7 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
    const captured=scope(),seq=++sequence.current;
    try{
     const value=await client.invoke('games.chat.read',{tableId:captured.tableId});if(!current(captured))return;
-    applyMessages(value.messages??[],seq);setChatReceipt(old=>old&&normalizeChatReceipt(value,{submissionId:old.submissionId,previous:old}));
+    applyMessages(value.messages??[],seq,value);setChatReceipt(old=>old&&normalizeChatReceipt(value,{submissionId:old.submissionId,previous:old}));
    }catch(error){if(current(captured))showError(error);}
   }
 
@@ -360,6 +370,6 @@ export function createCardGamesApp(React,{client=createGamePageClient(),render=r
    try{const state=await client.readiness();if(!current(captured))return;setReady(state);clearError();if(state.mode==='runtime')await refresh(null);}
    catch(error){if(current(captured))showError(error);}
   }
-  return render(React,{...visuals,audioSettings:audio.settings,setAudioSettings:audio.setAudioSettings,onAudioClick:audio.onAudioClick,boardBusy,ddzDealing,ddzDealCount,ddzDealReduced:ddzDealing&&ddzPresentation.reduced,ddzEndStage,continueDdzSettlement,stageRef,screen,overlay,setOverlay,openSetup,openSaved,openSeats,showLobby,returnLobby:showLobby,topup,setTopup,toggleCard,refreshReadiness,clearModelStatus:()=>setDismissedModel(modelNoticeKey),ready,lobby,table,type,count,roster,buyIn,blinds,busy,chatBusy,chatCharacter,chatReceipt,chatRetry,error,errorCode,selected,pattern,raiseTo,messages,text,replay,review,reviewCharacter,reviewBusy,strategy,autoAI,pendingRetry,modelStatus:modelNoticeKey===dismissedModel?null:observedModel,modelTurn,modelBusy,modelWaitLong,view,players,userId,ownHand,legal,isUser,settled,paused,available,rosterCount,chosenPattern,selectedPatterns,stylesheet,modelRequest,refresh,perform,tableCommand,startModel,changeCount,create,action,retry,checkPending,cancelModel,openReplay,startReview,cancelReview,submitChat,retryChat,refreshChat,cancelChat,setType,setRoster,setBuyIn,setBlinds,setRaiseTo,setText,setReplay,setReview,setReviewCharacter,setChatCharacter,setStrategy,setAutoAI,setPattern,setError:visibleError,epoch,lastAuto,uuid});
+  return render(React,{...visuals,audioSettings:audio.settings,setAudioSettings:audio.setAudioSettings,onAudioClick:audio.onAudioClick,boardBusy,ddzDealing,ddzDealCount,ddzDealReduced:ddzDealing&&ddzPresentation.reduced,ddzEndStage,continueDdzSettlement,stageRef,screen,overlay,setOverlay,openSetup,openSaved,openSeats,showLobby,returnLobby:showLobby,topup,setTopup,toggleCard,refreshReadiness,clearModelStatus:()=>setDismissedModel(modelNoticeKey),ready,lobby,table,type,count,roster,buyIn,blinds,busy,chatBusy,chatCharacter,chatReceipt,chatRetry,error,errorCode,selected,pattern,raiseTo,messages:speechDisplay.messages,text,replay,review,reviewCharacter,reviewBusy,strategy,autoAI,pendingRetry,modelStatus:modelNoticeKey===dismissedModel?null:observedModel,modelTurn,modelBusy,modelWaitLong,view,players,userId,ownHand,legal,isUser,settled,paused,available,rosterCount,chosenPattern,selectedPatterns,stylesheet,modelRequest,refresh,perform,tableCommand,startModel,changeCount,create,action,retry,checkPending,cancelModel,openReplay,startReview,cancelReview,submitChat,retryChat,refreshChat,cancelChat,setType,setRoster,setBuyIn,setBlinds,setRaiseTo,setText,setReplay,setReview,setReviewCharacter,setChatCharacter,setStrategy,setAutoAI,setPattern,setError:visibleError,epoch,lastAuto,uuid});
  };
 }

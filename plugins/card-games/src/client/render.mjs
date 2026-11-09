@@ -76,7 +76,7 @@ export function renderCardGames(React,p){
  const button=(text,onClick,disabled=p.busy,extra={})=>h('button',{type:'button',onClick,disabled,...extra},text);
  const gb=(text,onClick,disabled=p.busy,variant='',extra={})=>button(text,onClick,disabled,{className:'cg-gb '+variant,...extra});
  const ib=(text,onClick,disabled=p.busy,extra={})=>button(text,onClick,disabled,{className:'cg-ib',...extra});
- const sound=(result=false)=>p.audioSettings&&h(AudioSettingsControl,{React,lang:p.lang,settings:p.audioSettings,change:p.setAudioSettings,result});
+ const sound=(result=false)=>p.audioSettings&&h(AudioSettingsControl,{React,lang:p.lang,settings:p.audioSettings,change:p.setAudioSettings,result,voiceAvailable:p.ready?.cardAudioVolume===true});
  const row=(...children)=>h('div',{className:'cg-row'},...children);
  const quiet=text=>h('p',{className:'cg-quiet'},text);
  const field=(text,control)=>h('label',{className:'cg-field'},text,control);

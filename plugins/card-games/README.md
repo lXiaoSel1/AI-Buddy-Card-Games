@@ -1,4 +1,4 @@
-# 小游戏候选插件
+# 一起玩牌 1.1.3 / Card Games 1.1.3
 
 一个原生DSH包提供斗地主和德州积分桌。需要本交付的 `voice-games-v1` 小游戏宿主补丁；旧宿主显示需要升级，不能静默创建另一套钱包。
 
@@ -13,3 +13,9 @@
 原生入口 `src/index.mjs`，客户端入口 `src/client/index.mjs`，纯规则入口 `src/rules/index.mjs`。根构建脚本统一产出 `lib/index.js`、`lib/client.js`、`lib/rules.js`，包和补丁由唯一整合者整合；本包不自行安装正式版本或发布。
 
 测试见实现根 `tests/games`，测试席位明确标注synthetic。规则/Mock通过不等于真实模型、真实宿主或用户验收通过，最终状态以根 `TEST-RESULTS.json` 与回执为准。
+
+## 1.1.3
+
+沿用本机 1.1.2 的牌桌恢复、语音与字幕同步和音频设置修复，保留大厅与牌桌 BGM、音效及独立音量。斗地主和德州规则、素材、四项权限与 voice-games-v1 合同保持原值。语音需要本体及用户配置；本包不含私人声线或账号。本轮不增加业务行为。
+
+Publishes local 1.1.2 table-recovery, speech/subtitle synchronization and audio-setting fixes, preserving lobby/table music, effects and separate volume controls. Rules, assets, the four permissions and the voice-games-v1 contract are unchanged. Voice requires the host and user configuration; no private voice references or accounts are included. This preparation adds no new runtime behavior.
