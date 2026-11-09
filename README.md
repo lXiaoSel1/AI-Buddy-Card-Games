@@ -9,7 +9,7 @@
 
 **简体中文** · [English](#english)
 
-[AI 酱本体](https://github.com/lXiaoSel1/AI-Buddy) · [B站陪伴](https://github.com/lXiaoSel1/AI-Buddy-Bilibili) · [QQ连接](https://github.com/lXiaoSel1/AI-Buddy-QQ) · **一起玩牌**（本仓库）
+[AI 酱本体](https://github.com/lXiaoSel1/AI-Buddy) · [B站陪伴](https://github.com/lXiaoSel1/AI-Buddy-Bilibili) · [QQ连接](https://github.com/lXiaoSel1/AI-Buddy-QQ) · **一起玩牌**（本仓库） · [语音](https://github.com/lXiaoSel1/AI-Buddy-Voice)
 
 **当前版本：1.1.4** · 需要 [AI 酱](https://github.com/lXiaoSel1/AI-Buddy) 2.0.4 或更新版本，建议用 2.0.5 或更新版本：在 2.0.4 里，这个页面和 B站、QQ 页面切换时可能卡在「启动中」。这是 AI 酱的官方插件，在 AI 酱的 **扩展中心** 里安装，不用单独下载。
 
@@ -21,6 +21,7 @@
 
 - **斗地主**：三人一桌，你和两位角色。叫地主、抢地主、普通加倍、出牌，炸弹和王炸都有。底分 1，倍率来自抢地主、炸弹、王炸、春天和加倍，每位农民封顶 16。
 - **德州扑克**：2 到 10 人，盲注 1/2 或 2/5，无限注，支持边池。你的带入至少 20，AI 默认带 200。两手之间可以补筹，也可以调整下一手的座位。
+- **音乐和语音**：大厅、斗地主和德州各有背景音乐，牌桌上有音效（1.1.0 起）。装了 AI 酱的[语音插件](https://github.com/lXiaoSel1/AI-Buddy-Voice)后，她们会在牌桌上把台词说出来（需要 AI 酱 2.0.9）。
 
 ## 快速上手
 
@@ -29,6 +30,7 @@
 3. 打开侧栏 **插件** 里的「一起玩牌」，大厅里选斗地主或德州。
 4. 选牌友，点 **开始发牌**。斗地主每人至少要有 32 可用积分。
 5. 轮到角色时点 **让 X 出牌**，或打开顶栏的 **AI 自动行动**。这个开关只在本次页面有效，刷新后关闭。
+6. （可选）想听她们说话：在 AI 酱 2.0.9 里装好语音插件并打开语音，见[语音插件的快速上手](https://github.com/lXiaoSel1/AI-Buddy-Voice#快速上手)。
 
 ![大厅：左边是当前陪伴角色，右边是斗地主和德州两个入口（真实窗口，演示存档）](docs/images/lobby.webp)
 
@@ -53,6 +55,12 @@
 - **桌聊**：可以和在座的角色聊天。桌聊是公开的，不包含任何人的隐藏手牌，也不算出牌指令。
 - **德州回放和复盘**：结算后可以看这手牌的全部底牌，也可以请某位角色复盘。斗地主没有单独的回放。
 - **暂停和续玩**：牌局自动保存，随时暂停，下次从大厅继续。
+- **声音**：大厅、斗地主和德州各有一首循环的背景音乐。德州有人全下、斗地主有人只剩 1–2 张牌时，换成紧张的曲子，结算后牌桌音乐从原来的位置接着放。发牌、翻牌、筹码和轮到你时有提示音；地主、飞机、炸弹、王炸和春天有各自的音效（反春天用春天的音效），斗地主结算按你自己的胜负播放对应音效。德州你赢下底池时是筹码声，没有专门的胜负音效。
+- **语音**：开着 AI 酱的语音、准备好引擎并配好角色声音时，她们会用合成语音把这一步的台词说出来。牌桌上的文字等声音开始再显示，最多等 15 秒；声音没来或出错时文字照常显示，免得牌局一直等。
+- **声音菜单**：顶栏的喇叭按钮可以全部静音，或分别调音乐和音效的音量；用 AI 酱 2.0.9 时还会多一条语音音量。设置保存在本机的插件资料里。
+
+<img src="docs/images/card-games-sound-menu.webp" width="349" alt="牌桌的声音菜单：全部静音，音乐 40、音效 60、语音 80 三条音量，语音下面写着「她们喊 All in、三条」（演示数据）">
+
 - **主题和窗口**：牌背和牌桌跟随 11 套主题。页面嵌在主窗口里，随窗口缩放，也可以单独开窗口。系统开了「减少动态效果」时，动画会简化。
 
 ## 积分和好感
@@ -89,11 +97,12 @@
 - 需要 AI 酱 2.0.4 或更新版本。旧版本会提示需要升级。
 - 流程用合成模型在真实窗口里走通过，包括官方安装和完整牌局。真实模型打得好不好、台词是否合适、要等多久，取决于你接的模型，没有做过完整验收。
 - 斗地主没有单独的回放，也没有练习桌。
+- 牌桌语音需要 AI 酱 2.0.9 和语音插件；语音音量条只在 AI 酱 2.0.9 及以上显示。声音迟迟不来时文字照常显示的 15 秒等待上限，还要按实际电脑校准。
 - 只支持 Windows 10/11 x64。
 
 ## 技术说明
 
-插件包名 `@ai-buddy/card-games`，版本 1.1.4，需要 AI 酱 2.0.4 或更新版本、DSH 0.2.1-rc.3 或更新版本（都只写下限），以及本体的 `voice-games-v1` 能力。这个仓库包含插件源码，页面入口 `plugins/card-games/src/client`，规则在 `plugins/card-games/src/rules`。积分、结算、牌局存档和模型调用在 [AI 酱本体](https://github.com/lXiaoSel1/AI-Buddy)里。
+插件包名 `@ai-buddy/card-games`，版本 1.1.4，需要 AI 酱 2.0.4 或更新版本、DSH 0.2.1-rc.3 或更新版本（都只写下限），以及本体的 `voice-games-v1` 能力。这个仓库包含插件源码，页面入口 `plugins/card-games/src/client`，规则在 `plugins/card-games/src/rules`。积分、结算、牌局存档和模型调用在 [AI 酱本体](https://github.com/lXiaoSel1/AI-Buddy)里。插件包里没有私人声线或账号；语音由 AI 酱和你装的语音插件提供。各版本的变化见 [1.1.3 发行说明](RELEASE-NOTES-1.1.3.md)。
 
 ## 许可与第三方
 
@@ -111,6 +120,7 @@ Play Dou Dizhu and Texas Hold'em with your AI Buddy characters. They sit behind 
 
 - **Dou Dizhu**: three players, you and two characters. Calling, robbing, ordinary doubling and playing, with bombs and the rocket. Base score 1. The multiplier comes from robbing, bombs, the rocket, spring and doubling, capped at 16 per farmer.
 - **Texas Hold'em**: 2 to 10 players, blinds 1/2 or 2/5, no limit, with side pots. Your buy-in is at least 20, and AI players bring 200 by default. You can top up and change next-hand seats between hands.
+- **Music and voice**: the lobby, Dou Dizhu and Hold'em each have music, and the table has sound effects (from 1.1.0). With AI Buddy's [voice plugins](https://github.com/lXiaoSel1/AI-Buddy-Voice) installed, the characters speak their lines at the table (needs AI Buddy 2.0.9).
 
 ### Quick start
 
@@ -119,6 +129,7 @@ Play Dou Dizhu and Texas Hold'em with your AI Buddy characters. They sit behind 
 3. Open Card Games under **Plugins** in the sidebar and pick a game in the lobby.
 4. Pick your opponents and click **Deal**. Dou Dizhu needs at least 32 available points per player.
 5. On a character's turn, click **Ask X to play**, or turn on **AI auto** in the top bar. That switch lasts until the page is refreshed.
+6. (Optional) To hear them talk, install a voice plugin in AI Buddy 2.0.9 and turn voice on; see the [voice plugin guide](https://github.com/lXiaoSel1/AI-Buddy-Voice#english).
 
 ### At the table
 
@@ -133,6 +144,9 @@ Play Dou Dizhu and Texas Hold'em with your AI Buddy characters. They sit behind 
 - **Table chat**: public chat with the seated characters. It contains nobody's hidden cards and never counts as a move.
 - **Hold'em replay and review**: after settlement you can see every hole card of that hand and ask a character to review it. Dou Dizhu has no separate replay.
 - **Pause and resume**: games save automatically, and you can resume from the lobby.
+- **Sound**: the lobby, Dou Dizhu and Hold'em each loop their own music. When someone goes all in at Hold'em, or a Dou Dizhu player is down to 1–2 cards, the music switches to a tense track and the table music resumes where it left off after settlement. Dealing, turning cards, chips and your turn have cues; landlord, plane, bomb, rocket and spring have their own effects (counter-spring reuses spring), and Dou Dizhu settlement plays a cue for your own win or loss. When you win a Hold'em pot it plays the chip sound; there is no separate win or loss cue.
+- **Voice**: with AI Buddy voice on, an engine prepared and character voices set, the characters speak their move lines in synthesized speech. Table text waits up to 15 seconds for the audio; if it does not come or fails, the text is shown anyway so the game is not left waiting.
+- **Sound menu**: the speaker button in the top bar mutes everything or sets music and effects volumes separately, plus a voice volume with AI Buddy 2.0.9 or later. Settings are saved in the plugin's local data.
 - **Themes and windows**: card backs and tables follow the 11 themes. The page sits in the main window and scales with it, or opens in its own window. Animations simplify when the system's reduced motion setting is on.
 
 ### Points and affection
@@ -162,28 +176,13 @@ Games, points and affection stay in AI Buddy on your computer. The plugin page c
 - Requires AI Buddy 2.0.4 or later. Older versions show an upgrade notice.
 - The flow has been run in a real window with a synthetic model, including official installation and full games. Playing strength, lines and waiting times depend on your model and have not had a full review.
 - Dou Dizhu has no separate replay and no practice table.
+- Table voice needs AI Buddy 2.0.9 and a voice plugin; the voice volume appears only with AI Buddy 2.0.9 or later. The 15-second wait after which text is shown without audio still needs calibrating on real computers.
 - Windows 10/11 x64 only.
 
 ### Technical notes
 
-Package `@ai-buddy/card-games` 1.1.4, requires AI Buddy 2.0.4 or later and DSH 0.2.1-rc.3 or later (lower bounds only), plus the app's `voice-games-v1` feature. This repository holds the plugin source: the page in `plugins/card-games/src/client` and the rules in `plugins/card-games/src/rules`. Points, settlement, saved games and model calls live in the [AI Buddy app](https://github.com/lXiaoSel1/AI-Buddy).
+Package `@ai-buddy/card-games` 1.1.4, requires AI Buddy 2.0.4 or later and DSH 0.2.1-rc.3 or later (lower bounds only), plus the app's `voice-games-v1` feature. This repository holds the plugin source: the page in `plugins/card-games/src/client` and the rules in `plugins/card-games/src/rules`. Points, settlement, saved games and model calls live in the [AI Buddy app](https://github.com/lXiaoSel1/AI-Buddy). The package contains no private voices or accounts; voice comes from AI Buddy and the voice plugin you install. See the [1.1.3 release notes](RELEASE-NOTES-1.1.3.md).
 
 ### License and third parties
 
 Source available under Apache-2.0 + Commons Clause, see [LICENSE.md](LICENSE.md). You may use, modify and share it for free, but not sell it. See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for artwork and font sources: character cards use existing AI Buddy characters as references, and the terms for that artwork apply.
-
-## 1.1.4
-
-只改了兼容声明：需要 AI 酱 2.0.4 或更新版本、DSH 0.2.1-rc.3 或更新版本（之后的预览版也算），不再设上限；插件接口仍是 ^1.3.0。规则、素材、权限和数据格式都和 1.1.3 相同。以后 AI 酱升级时，只要插件接口还是 1.x，这一版就能继续用。
-
-Compatibility declarations only: AI Buddy 2.0.4 or later and DSH 0.2.1-rc.3 or later (later previews included), with no upper bound; the plugin bridge stays ^1.3.0. Rules, assets, permissions and data format are unchanged from 1.1.3. Later AI Buddy releases keep working with it as long as the bridge stays 1.x.
-
-[1.1.4 发行说明 / Release notes](RELEASE-NOTES-1.1.4.md)
-
-## 1.1.3
-
-沿用本机 1.1.2 的牌桌恢复、语音与字幕同步和音频设置修复，保留大厅与牌桌 BGM、音效及独立音量。斗地主和德州规则、素材、四项权限与 voice-games-v1 合同保持原值。语音需要本体及用户配置；本包不含私人声线或账号。本轮不增加业务行为。
-
-Publishes local 1.1.2 table-recovery, speech/subtitle synchronization and audio-setting fixes, preserving lobby/table music, effects and separate volume controls. Rules, assets, the four permissions and the voice-games-v1 contract are unchanged. Voice requires the host and user configuration; no private voice references or accounts are included. This preparation adds no new runtime behavior.
-
-[1.1.3 发行说明 / Release notes](RELEASE-NOTES-1.1.3.md)
