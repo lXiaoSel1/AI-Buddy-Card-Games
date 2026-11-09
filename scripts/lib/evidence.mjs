@@ -9,7 +9,7 @@ export async function snapshot(){
  for(const dir of ['contracts','plugins/card-games','tests/games','scripts']){
   for(const row of await inventory(join(root,dir)))rows.push({...row,path:dir+'/'+row.path});
  }
- for(const name of ['package.json','package-lock.json','HOST-CONTRACT.md','README.md','LICENSE.md','THIRD-PARTY-NOTICES.md','RELEASE-NOTES.md']){
+ for(const name of ['package.json','package-lock.json','release-compatibility.json','HOST-CONTRACT.md','README.md','LICENSE.md','THIRD-PARTY-NOTICES.md','RELEASE-NOTES.md']){
   const data=await readFile(join(root,name));
   rows.push({path:name,bytes:data.length,sha256:sha(data)});
  }

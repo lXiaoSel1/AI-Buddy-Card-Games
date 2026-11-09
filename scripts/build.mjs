@@ -1,3 +1,4 @@
+import {assertNewReleaseCompatibility} from './lib/plugin-release-compatibility.mjs';
 import {build} from 'esbuild';
 import {mkdir,readFile,writeFile,copyFile,readdir,cp} from 'node:fs/promises';
 import {join,dirname} from 'node:path';
@@ -7,7 +8,8 @@ import {unpack} from './lib/tar-reader.mjs';
 import {CONTRACT_VERSION,CONTRACT_HASH} from '../contracts/contract.mjs';
 const before=await snapshot(),stamp=new Date().toISOString().replace(/[:.]/g,'-'),base=join(root,'artifacts',stamp),src=join(root,'plugins/card-games'),stage=join(base,'card-games','package');
 await mkdir(join(stage,'lib'),{recursive:true});const manifest=JSON.parse(await readFile(join(src,'package.json'),'utf8'));
-if(manifest.name!=='@ai-buddy/card-games'||manifest.version!=='1.1.3')throw Error('Unexpected release package identity');
+const releasePolicy=JSON.parse(await readFile(join(root,'release-compatibility.json'),'utf8'));
+assertNewReleaseCompatibility(releasePolicy,{sourceManifest:manifest});
 await build({absWorkingDir:root,entryPoints:[join(src,'src/index.mjs')],outfile:join(stage,'lib/index.js'),bundle:true,format:'esm',platform:'node',target:'node24',external:['node:*'],legalComments:'eof',sourcemap:false});
 await build({absWorkingDir:root,entryPoints:[join(src,'src/client/index.mjs')],outfile:join(stage,'lib/client.js'),bundle:true,format:'iife',platform:'browser',target:'chrome130',legalComments:'eof',sourcemap:false});
 await build({absWorkingDir:root,entryPoints:[join(src,'src/rules/index.mjs')],outfile:join(stage,'lib/rules.js'),bundle:true,format:'esm',platform:'node',target:'node24',external:['node:*'],legalComments:'eof',sourcemap:false});

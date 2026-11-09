@@ -1,6 +1,6 @@
 {
   "name": "ai-buddy-card-games-source",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "private": true,
   "type": "module",
   "engines": {
@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "node --test tests/games/*.test.mjs",
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "check:release-compatibility": "node scripts/check-release-compatibility.mjs --manifest=release-compatibility.json --source=plugins/card-games/package.json"
   },
   "devDependencies": {
     "esbuild": "0.28.2",
