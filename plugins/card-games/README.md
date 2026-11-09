@@ -1,4 +1,4 @@
-# 一起玩牌 1.1.3 / Card Games 1.1.3
+# 一起玩牌 1.1.4 / Card Games 1.1.4
 
 一个原生DSH包提供斗地主和德州积分桌。需要本交付的 `voice-games-v1` 小游戏宿主补丁；旧宿主显示需要升级，不能静默创建另一套钱包。
 
@@ -13,6 +13,12 @@
 原生入口 `src/index.mjs`，客户端入口 `src/client/index.mjs`，纯规则入口 `src/rules/index.mjs`。根构建脚本统一产出 `lib/index.js`、`lib/client.js`、`lib/rules.js`，包和补丁由唯一整合者整合；本包不自行安装正式版本或发布。
 
 测试见实现根 `tests/games`，测试席位明确标注synthetic。规则/Mock通过不等于真实模型、真实宿主或用户验收通过，最终状态以根 `TEST-RESULTS.json` 与回执为准。
+
+## 1.1.4
+
+只改了兼容声明（AI 酱 >= 2.0.4、DSH >= 0.2.1-rc.3），规则和功能和 1.1.3 相同。
+
+Compatibility declarations only (AI Buddy >= 2.0.4, DSH >= 0.2.1-rc.3); rules and features match 1.1.3.
 
 ## 1.1.3
 
