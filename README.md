@@ -54,7 +54,7 @@
 - **表情和台词**：每步换表情。说不说话由模型决定，一句最多 40 字，不会说出手牌。
 - **桌聊**：可以和在座的角色聊天。桌聊是公开的，不包含任何人的隐藏手牌，也不算出牌指令。
 - **德州回放和复盘**：结算后可以看这手牌的全部底牌，也可以请某位角色复盘。斗地主没有单独的回放。
-- **暂停和续玩**：牌局自动保存，随时暂停，下次从大厅继续。牌局中途改了某位角色的模型连接（比如重新填了 Key），牌桌会暂停并说明「这位角色的模型连接改过了。」：点 **用现在的连接继续** 接着打这一手，或者点 **作废这一手**，这一手不算输赢，押上的积分全部退回（需要 1.1.5 和本体 2.0.13）。
+- **暂停和续玩**：牌局自动保存，随时暂停，下次从大厅继续。牌局中途改了某位角色的模型连接（比如重新填了 Key），牌桌会暂停并说明「这位角色的模型连接改过了。」：点 **用现在的连接继续** 接着打这一手，或者点 **作废这一手**，这一手不算输赢，押上的积分全部退回（需要 1.1.5 和本体 2.0.14）。
 - **声音**：大厅、斗地主和德州各有一首循环的背景音乐。德州有人全下、斗地主有人只剩 1–2 张牌时，换成紧张的曲子，结算后牌桌音乐从原来的位置接着放。发牌、翻牌、筹码和轮到你时有提示音；地主、飞机、炸弹、王炸和春天有各自的音效（反春天用春天的音效），斗地主结算按你自己的胜负播放对应音效。德州你赢下底池时是筹码声，没有专门的胜负音效。
 - **语音**：开着 AI 酱的语音、准备好引擎并配好角色声音时，她们会用合成语音把这一步的台词说出来。牌桌上的文字等声音开始再显示，最多等 15 秒；声音没来或出错时文字照常显示，免得牌局一直等。
 - **声音菜单**：顶栏的喇叭按钮可以全部静音，或分别调音乐和音效的音量；用 AI 酱 2.0.9 时还会多一条语音音量。设置保存在本机的插件资料里。
@@ -143,7 +143,7 @@ Play Dou Dizhu and Texas Hold'em with your AI Buddy characters. They sit behind 
 - **Expressions and lines**: expressions change on every move. The model decides whether to speak, in 40 characters at most, and never names hidden cards.
 - **Table chat**: public chat with the seated characters. It contains nobody's hidden cards and never counts as a move.
 - **Hold'em replay and review**: after settlement you can see every hole card of that hand and ask a character to review it. Dou Dizhu has no separate replay.
-- **Pause and resume**: games save automatically, and you can resume from the lobby. If a character's model connection changes during a hand (for example the key was entered again), the table pauses and says "This character’s model connection has changed.": choose **Continue with the current connection** to finish the hand, or **Void this hand**, which counts as neither a win nor a loss and returns all the points put in (needs 1.1.5 and AI Buddy 2.0.13).
+- **Pause and resume**: games save automatically, and you can resume from the lobby. If a character's model connection changes during a hand (for example the key was entered again), the table pauses and says "This character’s model connection has changed.": choose **Continue with the current connection** to finish the hand, or **Void this hand**, which counts as neither a win nor a loss and returns all the points put in (needs 1.1.5 and AI Buddy 2.0.14).
 - **Sound**: the lobby, Dou Dizhu and Hold'em each loop their own music. When someone goes all in at Hold'em, or a Dou Dizhu player is down to 1–2 cards, the music switches to a tense track and the table music resumes where it left off after settlement. Dealing, turning cards, chips and your turn have cues; landlord, plane, bomb, rocket and spring have their own effects (counter-spring reuses spring), and Dou Dizhu settlement plays a cue for your own win or loss. When you win a Hold'em pot it plays the chip sound; there is no separate win or loss cue.
 - **Voice**: with AI Buddy voice on, an engine prepared and character voices set, the characters speak their move lines in synthesized speech. Table text waits up to 15 seconds for the audio; if it does not come or fails, the text is shown anyway so the game is not left waiting.
 - **Sound menu**: the speaker button in the top bar mutes everything or sets music and effects volumes separately, plus a voice volume with AI Buddy 2.0.9 or later. Settings are saved in the plugin's local data.
