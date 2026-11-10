@@ -1,4 +1,4 @@
-# 一起玩牌 1.1.4 / Card Games 1.1.4
+# 一起玩牌 1.1.5 / Card Games 1.1.5
 
 一个原生DSH包提供斗地主和德州积分桌。需要本交付的 `voice-games-v1` 小游戏宿主补丁；旧宿主显示需要升级，不能静默创建另一套钱包。
 
@@ -13,6 +13,12 @@
 原生入口 `src/index.mjs`，客户端入口 `src/client/index.mjs`，纯规则入口 `src/rules/index.mjs`。根构建脚本统一产出 `lib/index.js`、`lib/client.js`、`lib/rules.js`，包和补丁由唯一整合者整合；本包不自行安装正式版本或发布。
 
 测试见实现根 `tests/games`，测试席位明确标注synthetic。规则/Mock通过不等于真实模型、真实宿主或用户验收通过，最终状态以根 `TEST-RESULTS.json` 与回执为准。
+
+## 1.1.5
+
+牌局中途某位角色的模型连接改过时，暂停窗口给出「用现在的连接继续」和「作废这一手」（不算输赢，押上的积分全部退回）。需要本体 2.0.13；在更早的本体上和 1.1.4 一样。规则、素材、四项权限与 voice-games-v1 合同不变。
+
+When a character's model connection changes during a hand, the pause dialog offers "Continue with the current connection" and "Void this hand" (neither a win nor a loss; all points put in are returned). This needs AI Buddy 2.0.13; on earlier versions it behaves like 1.1.4. Rules, assets, the four permissions and the voice-games-v1 contract are unchanged.
 
 ## 1.1.4
 
